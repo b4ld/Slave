@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "hub": {
+      "image": "itzg/minecraft"
+    },
+    "bedwars": {
+      "image": {
+        "image": "itzg/minecraft-server",
+        "auth": {
+          "username": "username",
+          "password": "password",
+          "auth": "",
+          "email": "your@email.email",
+          "serveraddress": "https: //index.docker.io/v1"
+        }
+      }
+    }
+  }
+}
