@@ -52,6 +52,9 @@ module.exports = class Container extends EventEmitter {
 
     if (info.State.Running === true) {
       this.status = ContainerStatus.ONLINE
+
+      this.attach()
+        .then(() => this.logger.info('Attached to the container.'))
     } else {
       this.start()
     }
@@ -62,10 +65,9 @@ module.exports = class Container extends EventEmitter {
    */
   async start () {
     if (this.status === ContainerStatus.OFFLINE) {
-      await this.container.start()
-
       this.logger.info('Container is now starting...')
       this.updateStatus(ContainerStatus.STARTING)
+      await this.container.start()
 
       await this.attach()
       this.logger.info('Attached to the container, waiting for it to fully start.')

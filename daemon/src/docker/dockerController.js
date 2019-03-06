@@ -3,12 +3,19 @@
 const Docker = require('dockerode')
 const logger = require('../config/logger')()
 const Container = require('./container')
+const ContainerStatus = require('./containerStatus')
 
 const client = new Docker()
 
 module.exports.client = client
+/**
+ * @property {Object.<string, Container>} containers - Containers cache
+ */
 module.exports.DockerController = class DockerController {
   constructor () {
+    /** @type {Object.<string, Container>} */
+    this.containers = {}
+
     this.init()
       .catch(err => {
         if (err.errno === 'ENOENT' && err.syscall === 'connect') {
@@ -37,6 +44,34 @@ module.exports.DockerController = class DockerController {
         this.initContainer(container)
       }
     }
+
+    this.registerListener()
+      .catch(err => logger.error('Failed to register docker event listener!', { stack: err.stack }))
+  }
+
+  /**
+   * Listen for docker events
+   */
+  async registerListener () {
+    const eventStream = await client.getEvents({
+      Filters: {
+        type: 'container'
+      }
+    })
+
+    eventStream.on('data', msg => {
+      msg = JSON.parse(msg)
+      if (!msg || !msg.Type || msg.Type !== 'container' || !msg.Action) {
+        return
+      }
+
+      const c = this.containers[msg.id]
+      if (c) {
+        if (msg.Action === 'die') {
+          c.updateStatus(ContainerStatus.OFFLINE)
+        }
+      }
+    })
   }
 
   /**
@@ -69,7 +104,9 @@ module.exports.DockerController = class DockerController {
   initContainer (containerInfo) {
     const container = client.getContainer(containerInfo.Id)
 
-    new Container(container)
+    const c = new Container(container)
+
+    this.containers[c.container.id] = c
   }
 
   /**
