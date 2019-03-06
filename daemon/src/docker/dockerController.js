@@ -46,7 +46,10 @@ module.exports.DockerController = class DockerController {
    */
   async ensureImagesLoaded () {
     const servers = require('../config.json').servers
-    const images = Object.keys(servers).map(server => servers[server].image)
+    const images = Object.keys(servers)
+      .map(server => servers[server].image)
+      // Filter duplicated values
+      .filter((item, pos, self) => self.indexOf(item) === pos)
 
     for (const image of images) {
       if (typeof image === 'string') {
