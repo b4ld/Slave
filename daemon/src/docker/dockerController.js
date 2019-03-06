@@ -69,6 +69,12 @@ module.exports.DockerController = class DockerController {
       if (c) {
         if (msg.Action === 'die') {
           c.updateStatus(ContainerStatus.OFFLINE)
+        } else if (msg.Action === 'start') {
+          if (c.status === ContainerStatus.OFFLINE) {
+            c.logger.warn('Container started from outside the daemon.')
+            c.updateStatus(ContainerStatus.STARTING)
+            c.postStart()
+          }
         }
       }
     })

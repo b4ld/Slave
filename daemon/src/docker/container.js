@@ -69,11 +69,15 @@ module.exports = class Container extends EventEmitter {
       this.updateStatus(ContainerStatus.STARTING)
       await this.container.start()
 
-      await this.attach()
-      this.logger.info('Attached to the container, waiting for it to fully start.')
+      await this.postStart()
     } else {
       this.logger.warning('Received command to start the container but it is already running!')
     }
+  }
+
+  async postStart () {
+    await this.attach()
+    this.logger.info('Attached to the container, waiting for it to fully start.')
   }
 
   /**
