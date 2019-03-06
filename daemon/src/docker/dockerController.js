@@ -30,7 +30,7 @@ module.exports.DockerController = class DockerController {
     logger.info('All images required are loaded localy!')
 
     logger.info('Checking for existing containers...')
-    const containers = client.listContainers({ all: true })
+    const containers = await client.listContainers({ all: true })
     for (const container of containers) {
       if (this.isZentryServer(container)) {
         logger.info('Found a zentry container! %s', container.Names)
