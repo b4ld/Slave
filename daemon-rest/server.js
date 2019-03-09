@@ -1,18 +1,21 @@
-"use strict";
-const Hapi = require("hapi");
-const dotenv = require("dotenv");
+'use strict';
+const Hapi = require('hapi');
+const dotenv = require('dotenv');
+const autoload = require('./autoload');
 
 dotenv.config({
-  path: "./.env"
+  path: './.env',
 });
 
 const server = Hapi.server({
   port: process.env.SERVER_PORT || 3000,
-  host: process.env.SERVER_HOSTNAME || "localhost"
+  host: process.env.SERVER_HOSTNAME || 'localhost',
 });
 
 const load = () => {
-  server.realm.modifiers.route.prefix = process.env.BASE_PATH || "/v1";
+  server.realm.modifiers.route.prefix = process.env.BASE_PATH || '/v1';
+
+  autoload.routes.forEach(route => server.route(route));
 };
 
 const init = async () => {
@@ -22,7 +25,7 @@ const init = async () => {
   console.log(`Server running at: ${server.info.uri}`);
 };
 
-process.on("unhandledRejection", err => {
+process.on('unhandledRejection', err => {
   console.log(err);
   process.exit(1);
 });
