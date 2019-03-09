@@ -1,6 +1,6 @@
-const winston = require('winston')
-const format = winston.format 
-require('winston-daily-rotate-file')
+const winston = require('winston');
+const format = winston.format; 
+require('winston-daily-rotate-file');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -19,7 +19,7 @@ const logger = winston.createLogger({
       maxFiles: '14d'
     })
   ]
-})
+});
 
 if (process.env.NODE_ENV !== 'production') {
   // Log to console in development
@@ -30,15 +30,15 @@ if (process.env.NODE_ENV !== 'production') {
       format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
       format.printf(info => `${info.timestamp} [${info.level}]${info.label ? `[${info.label}]` : ''}: ${info.message}${info.stack ? `\n${info.stack}` : ''}`)
     )
-  }))
+  }));
 }
 
 module.exports = (opts) => {
   if (typeof opts === 'string') {
-    return logger.child({ label: opts })
+    return logger.child({ label: opts });
   } else if (typeof opts === 'object') {
-    return logger.child(...opts)
+    return logger.child(...opts);
   }
 
-  return logger
-}
+  return logger;
+};

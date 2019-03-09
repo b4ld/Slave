@@ -8,4 +8,4 @@ module.exports = Object.freeze({
   OFFLINE: 'offline',
   STARTING: 'starting',
   STOPPING: 'stopping'
-})
+});

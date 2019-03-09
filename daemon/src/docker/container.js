@@ -1,9 +1,9 @@
-'use strict'
+'use strict';
 
-const EventEmitter = require('events')
-const logger = require('../config/logger')
-const ContainerStatus = require('./containerStatus')
-const EventType = require('./eventType')
+const EventEmitter = require('events');
+const logger = require('../config/logger');
+const ContainerStatus = require('./containerStatus');
+const EventType = require('./eventType');
 
 /** @typedef {import('dockerode').Container} DockerContainer */
 
@@ -19,23 +19,23 @@ module.exports = class Container extends EventEmitter {
    * @param {DockerContainer} container 
    */
   constructor (container) {
-    super()
+    super();
 
-    this.logger = logger()
+    this.logger = logger();
     // Temporary values
-    this.name = container.id
-    this.containerName = container.id
+    this.name = container.id;
+    this.containerName = container.id;
 
-    this.container = container
-    this.status = ContainerStatus.OFFLINE
+    this.container = container;
+    this.status = ContainerStatus.OFFLINE;
     this.regex = {
       start: /^(.*?)\[[\d:]{8} INFO]: Done \((.*?)s\)! For help, type "help"/,
       stop: /^(.*?)\[[\d:]{8} INFO]: Stopping server/
-    }
+    };
 
     this.init()
       .then(() => this.logger.info('Container "%s" loaded! Current status: %s', this.containerName, this.status))
-      .catch(err => this.logger.error('Failed to start the container!', { stack: err.stack }))
+      .catch(err => this.logger.error('Failed to start the container!', { stack: err.stack }));
   }
 
   /**
@@ -44,19 +44,19 @@ module.exports = class Container extends EventEmitter {
    * start it if not running already.
    */
   async init () {
-    const info = await this.container.inspect()
+    const info = await this.container.inspect();
 
-    this.name = info.Name.substr(15)
-    this.containerName = info.Name.substr(1)
-    this.logger = logger(this.name)
+    this.name = info.Name.substr(15);
+    this.containerName = info.Name.substr(1);
+    this.logger = logger(this.name);
 
     if (info.State.Running === true) {
-      this.status = ContainerStatus.ONLINE
+      this.status = ContainerStatus.ONLINE;
 
       this.attach()
-        .then(() => this.logger.info('Attached to the container.'))
+        .then(() => this.logger.info('Attached to the container.'));
     } else {
-      this.start()
+      this.start();
     }
   }
 
@@ -65,35 +65,35 @@ module.exports = class Container extends EventEmitter {
    */
   async start () {
     if (this.status === ContainerStatus.OFFLINE) {
-      this.logger.info('Container is now starting...')
-      this.updateStatus(ContainerStatus.STARTING)
-      await this.container.start()
+      this.logger.info('Container is now starting...');
+      this.updateStatus(ContainerStatus.STARTING);
+      await this.container.start();
 
-      await this.postStart()
+      await this.postStart();
     } else {
-      this.logger.warning('Received command to start the container but it is already running!')
+      this.logger.warning('Received command to start the container but it is already running!');
     }
   }
 
   async postStart () {
-    await this.attach()
-    this.logger.info('Attached to the container, waiting for it to fully start.')
+    await this.attach();
+    this.logger.info('Attached to the container, waiting for it to fully start.');
   }
 
   /**
    * Attach to the container 
    */
   async attach () {
-    const stream = await this.container.attach({ stream: true, stdout: true, stderr: true })
+    const stream = await this.container.attach({ stream: true, stdout: true, stderr: true });
 
     // Listen for console output
     stream.on('data', (data) => {
       data.toString().split('\n').forEach((line) => {
         if (line) {
-          this.onConsoleOutput(line.trim())
+          this.onConsoleOutput(line.trim());
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -101,14 +101,14 @@ module.exports = class Container extends EventEmitter {
    * @param {string} msg - Message received
    */
   async onConsoleOutput (msg) {
-    let match = msg.match(this.regex.start)
+    let match = msg.match(this.regex.start);
     if (match) {
-      this.updateStatus(ContainerStatus.ONLINE)
+      this.updateStatus(ContainerStatus.ONLINE);
     }
 
-    match = msg.match(this.regex.stop)
+    match = msg.match(this.regex.stop);
     if (match) {
-      this.updateStatus(ContainerStatus.STOPPING)
+      this.updateStatus(ContainerStatus.STOPPING);
     }
   }
 
@@ -117,8 +117,8 @@ module.exports = class Container extends EventEmitter {
    * @param {string} status 
    */
   updateStatus (status) {
-    this.status = status
-    this.emit(EventType.STATUS_UPDATE, status)
-    this.logger.info('Status updated: %s', this.status)
+    this.status = status;
+    this.emit(EventType.STATUS_UPDATE, status);
+    this.logger.info('Status updated: %s', this.status);
   }
-}
+};
