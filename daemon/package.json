@@ -13,10 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "@types/dockerode": "^2.5.12",
+    "@types/xml2js": "^0.4.3",
     "dockerode": "^2.5.8",
     "redis": "^2.8.0",
     "winston": "^3.2.1",
-    "winston-daily-rotate-file": "^3.7.0"
+    "winston-daily-rotate-file": "^3.7.0",
+    "xml2js": "^0.4.19"
   },
   "devDependencies": {
     "cucumber": "^5.1.0",
