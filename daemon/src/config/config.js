@@ -10,7 +10,7 @@ const configFilePath = path.join(__dirname, '../slave-config-template.xml');
 
 const parser = new xml.Parser({
   explicitArray: false,
-  attrValueProcessors: [xml.processors.parseBooleans],
+  attrValueProcessors: [xml.processors.parseBooleans]
 });
 const configFile = fs.readFileSync(configFilePath);
 
@@ -45,7 +45,7 @@ parser.parseString(configFile, (err, result) => {
   configuration.mountDir = config.Daemon.MountDir;
   configuration.portRange = {
     start: config.Daemon.PortRange.Start,
-    end: config.Daemon.PortRange.End,
+    end: config.Daemon.PortRange.End
   };
   configuration.servers = {};
 
@@ -68,7 +68,7 @@ parser.parseString(configFile, (err, result) => {
  * @param {object} serverObject
  * @returns {ServerType} server
  */
-function parseServer(serverObject) {
+function parseServer (serverObject) {
   logger = logger.child({ subLabel: serverObject.Name });
   assertFieldDefined(serverObject.Image, 'Server image is undefined!');
 
@@ -83,12 +83,12 @@ function parseServer(serverObject) {
       name: assertFieldDefined(
         serverObject.Image.Name,
         'Server image name is undefined!'
-      ),
+      )
     },
     properties: parseServerProperties(
       serverObject.Name,
       serverObject.Properties.Property
-    ),
+    )
   };
 
   logger.info(`Server configuration loaded for "${server.name}"!`);
@@ -100,7 +100,7 @@ function parseServer(serverObject) {
  * @param {object[]} props
  * @returns {ServerProperties}
  */
-function parseServerProperties(serverName, props) {
+function parseServerProperties (serverName, props) {
   /** @type {ServerProperties} */
   const properties = {};
 
@@ -149,7 +149,7 @@ function parseServerProperties(serverName, props) {
  * @param {string} property property to check
  * @returns {string} ServerProperty if property exists, undefined otherwise
  */
-function isValidServerProperty(property) {
+function isValidServerProperty (property) {
   for (const p of Object.values(ServerPropertyType)) {
     if (p.name.toLowerCase() === property.toLowerCase()) {
       return p;
@@ -162,7 +162,7 @@ function isValidServerProperty(property) {
  * @param {object} field
  * @param {string} message
  */
-function assertFieldDefined(field, message) {
+function assertFieldDefined (field, message) {
   if (!field) {
     throw new ConfigurationException(message);
   }

@@ -1,5 +1,5 @@
 module.exports = class ConfigurationException extends Error {
-  constructor(message) {
+  constructor (message) {
     super();
 
     this.message = message;

@@ -12,7 +12,7 @@ module.exports.client = client;
  * @property {Object.<string, Container>} containers - Containers cache
  */
 module.exports.DockerController = class DockerController {
-  constructor() {
+  constructor () {
     /** @type {Object.<string, Container>} */
     this.containers = {};
 
@@ -21,7 +21,7 @@ module.exports.DockerController = class DockerController {
         logger.error('Error connecting to docker!', { stack: err.stack });
       } else {
         logger.error('Error initializing Docker Controller!', {
-          stack: err.stack,
+          stack: err.stack
         });
       }
     });
@@ -32,7 +32,7 @@ module.exports.DockerController = class DockerController {
    * Ensures images are updated and check for
    * existing zentry containers.
    */
-  async init() {
+  async init () {
     // Ensure connection established
     logger.info('Connecting to Docker...');
     await client.listContainers();
@@ -52,7 +52,7 @@ module.exports.DockerController = class DockerController {
 
     this.registerListener().catch(err =>
       logger.error('Failed to register docker event listener!', {
-        stack: err.stack,
+        stack: err.stack
       })
     );
   }
@@ -60,11 +60,11 @@ module.exports.DockerController = class DockerController {
   /**
    * Listen for docker events
    */
-  async registerListener() {
+  async registerListener () {
     const eventStream = await client.getEvents({
       Filters: {
-        type: 'container',
-      },
+        type: 'container'
+      }
     });
 
     eventStream.on('data', msg => {
@@ -93,7 +93,7 @@ module.exports.DockerController = class DockerController {
    * containers are present localy.
    * @private
    */
-  async ensureImagesLoaded() {
+  async ensureImagesLoaded () {
     const servers = require('../config.json').servers;
     const images = Object.keys(servers)
       .map(server => servers[server].image)
@@ -115,7 +115,7 @@ module.exports.DockerController = class DockerController {
    *
    * @param {Docker.ContainerInfo} containerInfo
    */
-  initContainer(containerInfo) {
+  initContainer (containerInfo) {
     const container = client.getContainer(containerInfo.Id);
 
     const c = new Container(container);
@@ -129,7 +129,7 @@ module.exports.DockerController = class DockerController {
    * @param {Docker.ContainerInfo} containerInfo
    * @returns {boolean}
    */
-  isZentryServer(containerInfo) {
+  isZentryServer (containerInfo) {
     for (const name of containerInfo.Names) {
       if (name.startsWith('/zentry-server-')) {
         return true;
