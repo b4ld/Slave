@@ -17,11 +17,30 @@ const configFile = fs.readFileSync(configFilePath);
 /** @type {Configuration} */
 const configuration = {};
 
-parser.parseString(configFile, (err, result) => {
-  if (err) {
-    logger.info(err);
-    return;
-  }
+function load () {
+  return new Promise((resolve, reject) => {
+    parser.parseString(configFile, (err, result) => {
+      try {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        loadXmlConfiguration(result);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
+
+/**
+ * Load the configuration from the xml object
+ * 
+ * @param {object} result object retrieved from the configuration file
+ */
+function loadXmlConfiguration (result) {
   logger.info(`Loading ${path.basename(configFilePath)}...`);
 
   if (!result.Configuration) {
@@ -61,7 +80,7 @@ parser.parseString(configFile, (err, result) => {
     }
   }
   logger.info(`Configuration loaded!`);
-});
+}
 
 /**
  *
@@ -207,3 +226,6 @@ function assertFieldDefined (field, message) {
  * @type {object}
  * @property {string} name - Image name
  */
+
+module.exports.load = load;
+module.exports.config = configuration;

@@ -15,16 +15,6 @@ module.exports.DockerController = class DockerController {
   constructor () {
     /** @type {Object.<string, Container>} */
     this.containers = {};
-
-    this.init().catch(err => {
-      if (err.errno === 'ENOENT' && err.syscall === 'connect') {
-        logger.error('Error connecting to docker!', { stack: err.stack });
-      } else {
-        logger.error('Error initializing Docker Controller!', {
-          stack: err.stack
-        });
-      }
-    });
   }
 
   /**
