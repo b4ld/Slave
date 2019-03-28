@@ -2,7 +2,7 @@
 
 const Docker = require('dockerode');
 const logger = require('../config/logger')();
-const Container = require('./container');
+const Server = require('../server/server');
 const ContainerStatus = require('./containerStatus');
 
 const client = new Docker();
@@ -71,7 +71,8 @@ module.exports.DockerController = class DockerController {
           if (c.status === ContainerStatus.OFFLINE) {
             c.logger.warn('Container started from outside the daemon.');
             c.updateStatus(ContainerStatus.STARTING);
-            c.postStart();
+            c.attach()
+              .then(() => c.logger.info('Attached to the container, waiting for it to fully start.'));
           }
         }
       }
@@ -108,7 +109,7 @@ module.exports.DockerController = class DockerController {
   initContainer (containerInfo) {
     const container = client.getContainer(containerInfo.Id);
 
-    const c = new Container(container);
+    const c = new Server(container);
 
     this.containers[c.container.id] = c;
   }

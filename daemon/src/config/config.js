@@ -230,4 +230,4 @@ function assertFieldDefined (field, message) {
  */
 
 module.exports.load = load;
-module.exports.config = configuration;
+module.exports.configuration = configuration;
