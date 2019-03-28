@@ -4,7 +4,7 @@ require('winston-daily-rotate-file');
 const colors = require('colors/safe');
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   format: format.combine(
     format.splat(),
     format.timestamp({ format: 'HH:mm:ss.SSS' }),
