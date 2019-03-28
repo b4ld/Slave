@@ -196,7 +196,7 @@ function assertFieldDefined (field, message) {
  * @type {object}
  * @property {string} mountDir - Mounting directory for containers.
  * @property {PortRange} portRange - Port range to register containers.
- * @property {{Object.<string, ServerType>}} servers - All server types avaliable.
+ * @property {Object.<string, ServerType>} servers - All server types avaliable.
  */
 
 /**
