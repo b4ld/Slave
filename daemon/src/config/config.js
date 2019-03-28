@@ -138,7 +138,9 @@ function parseServerProperties (serverName, props) {
           continue;
         }
 
-        properties[property.name] = prop.$.type || property.default;
+        properties[property.name] = prop.$.type === undefined 
+          ? property.default
+          : prop.$.type;
       }
     } else if (props.$ && props.$.name) {
       const property = isValidServerProperty(props.$.name);
@@ -154,7 +156,7 @@ function parseServerProperties (serverName, props) {
 
   // Fill undefined properties
   for (const p of Object.values(ServerPropertyType)) {
-    if (!properties[p.name]) {
+    if (properties[p.name] === undefined) {
       properties[p.name] = p.default;
     }
   }
