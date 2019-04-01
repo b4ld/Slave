@@ -2,6 +2,7 @@ const Docker = require('dockerode');
 const logger = require('../config/logger')();
 const Server = require('../server/server');
 const ContainerStatus = require('./container-status.enum');
+const config = require('../config/config');
 
 const client = new Docker();
 
@@ -83,19 +84,23 @@ module.exports.DockerController = class DockerController {
    * @private
    */
   async ensureImagesLoaded () {
-    const servers = require('../config.json').servers;
-    const images = Object.keys(servers)
-      .map(server => servers[server].image)
+    const servers = config.configuration.servers;
+    const images = Object.values(servers)
+      .map(server => server.image)
       // Filter duplicated values
-      .filter((item, pos, self) => self.indexOf(item) === pos);
+      .filter((item, pos, self) => {
+        for (let i = 0; i < self.length; i++) {
+          if (item.name === self[i].name) {
+            return i === pos;
+          }
+        }
+      });
+    console.log(images);
 
     for (const image of images) {
-      if (typeof image === 'string') {
-        await client.pull(image, {});
-      } else if (typeof image === 'object') {
-        // Image from private repo, with auth
-        await client.pull(image.image, { authconfig: image.auth });
-      }
+      await client.pull(image.name, {});
+
+      // await client.pull(image.image, { authconfig: image.auth });
     }
   }
 
