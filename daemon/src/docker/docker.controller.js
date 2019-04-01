@@ -1,7 +1,7 @@
 const Docker = require('dockerode');
 const logger = require('../config/logger')();
 const Server = require('../server/server');
-const ContainerStatus = require('./containerStatus');
+const ContainerStatus = require('./container-status.enum');
 
 const client = new Docker();
 
