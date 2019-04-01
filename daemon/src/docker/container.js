@@ -1,9 +1,7 @@
-'use strict';
-
 const EventEmitter = require('events');
 const logger = require('../config/logger');
-const ContainerStatus = require('./containerStatus');
-const EventType = require('./eventType');
+const ContainerStatus = require('./container-status.enum');
+const EventType = require('./event-types.enum');
 
 /** @typedef {import('dockerode').Container} DockerContainer */
 

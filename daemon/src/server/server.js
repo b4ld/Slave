@@ -1,6 +1,6 @@
 const Container = require('../docker/container');
-const ContainerStatus = require('../docker/containerStatus');
-const EventType = require('../docker/eventType');
+const ContainerStatus = require('../docker/container-status.enum');
+const EventType = require('../docker/event-types.enum');
 const config = require('../config/config');
 
 module.exports = class Server extends Container {

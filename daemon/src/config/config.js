@@ -4,7 +4,7 @@ const xml = require('xml2js');
 
 let logger = require('./logger')('Config');
 const ConfigurationException = require('./ConfigurationException');
-const ServerPropertyType = require('../server/ServerPropertyType');
+const ServerPropertyType = require('../server/server-property.enum');
 
 const configFilePath = path.join(__dirname, '../slave-config-template.xml');
 

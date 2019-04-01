@@ -1,5 +1,3 @@
-'use strict';
-
 const Docker = require('dockerode');
 const logger = require('../config/logger')();
 const Server = require('../server/server');

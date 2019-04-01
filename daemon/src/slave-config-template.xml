@@ -13,7 +13,8 @@
                 <Name>itzg/minecraft-server</Name>
             </Image>
             <Properties>
-                <Property name="Lindao" type="true" />
+                <Property name="autoRestart" type="true" />
+                <Property name="deleteOnStop" type="false" />
             </Properties>
         </Server>
         <Server>
