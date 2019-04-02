@@ -15,7 +15,9 @@ module.exports = class Server extends Container {
     if (this.status === ContainerStatus.OFFLINE) {
       if (this.config.properties.deleteOnStop) {
         this.logger.info('Server stopped, deleting container...');
-        // TODO - Delete the container
+        this.remove()
+          .then(() => this.logger.info('Container deleted!'))
+          .catch(err => this.logger.error('Failed to delete the container!', { stack: err.stack }));
       } else if (this.config.properties.autoRestart) {
         this.logger.info('Server is offline, restarting...');
         this.start();
@@ -26,7 +28,9 @@ module.exports = class Server extends Container {
       if (newStatus === ContainerStatus.OFFLINE) {
         if (this.config.properties.deleteOnStop) {
           this.logger.info('Server stopped, deleting container...');
-          // TODO - Delete the container
+          this.remove()
+            .then(() => this.logger.info('Container deleted!'))
+            .catch(err => this.logger.error('Failed to delete the container!', { stack: err.stack }));
         } else if (this.config.properties.autoRestart) {
           this.logger.info('Restarting the server...');
           this.start();
