@@ -115,6 +115,19 @@ module.exports = class Container extends EventEmitter {
   }
 
   /**
+   * Remove the container
+   * This is a permanent action
+   */
+  async remove () {
+    if (this.status !== ContainerStatus.OFFLINE) {
+      await this.stop();
+    } else {
+      await this.container.remove();
+      // TODO - Remove from cached zentry container
+    }
+  }
+
+  /**
    * Update the container status
    * 
    * @param {string} status New status
