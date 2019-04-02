@@ -154,6 +154,10 @@ function parseServerProperties (serverName, props) {
     }
   }
 
+  if (properties[ServerPropertyType.AUTO_RESTART]) {
+    properties[ServerPropertyType.DELETE_ON_STOP] = false;
+  }
+
   // Fill undefined properties
   for (const p of Object.values(ServerPropertyType)) {
     if (properties[p.name] === undefined) {
