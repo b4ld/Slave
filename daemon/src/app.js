@@ -2,13 +2,10 @@ const Logger = require('./config/logger');
 const { DockerController } = require('./docker/docker.controller');
 const ConfigurationException = require('./config/configuration.exception');
 
-const config = require('./config/config');
 const logger = Logger();
 const dockerController = new DockerController();
 
 async function initialize () {
-  await config.load();
-
   await dockerController.init();
 }
 
@@ -19,7 +16,7 @@ initialize()
       return;
     }
 
-    if (err.errno === 'ENOENT' && err.syscall === 'connect') {
+    if ((err.errno === 'ENOENT' || err.errno === 'ETIMEDOUT') && err.syscall === 'connect') {
       logger.error('Error connecting to docker!', { stack: err.stack });
       return;
     }

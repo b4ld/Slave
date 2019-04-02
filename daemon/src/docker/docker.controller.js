@@ -2,8 +2,8 @@ const Docker = require('dockerode');
 const logger = require('../config/logger')();
 const Server = require('../server/server');
 const ContainerStatus = require('./container-status.enum');
-const config = require('../config/config');
 
+const config = require('../config/configuration');
 const client = new Docker();
 
 module.exports.client = client;
@@ -84,18 +84,7 @@ module.exports.DockerController = class DockerController {
    * @private
    */
   async ensureImagesLoaded () {
-    const servers = config.configuration.servers;
-    const images = Object.values(servers)
-      .map(server => server.image)
-      // Filter duplicated values
-      .filter((item, pos, self) => {
-        for (let i = 0; i < self.length; i++) {
-          if (item.name === self[i].name) {
-            return i === pos;
-          }
-        }
-      });
-    console.log(images);
+    const images = config.getImages();
 
     for (const image of images) {
       await client.pull(image.name, {});

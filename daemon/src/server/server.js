@@ -1,14 +1,14 @@
 const Container = require('../docker/container');
 const ContainerStatus = require('../docker/container-status.enum');
 const EventType = require('../docker/event-types.enum');
-const config = require('../config/config');
+const config = require('../config/configuration');
 
 module.exports = class Server extends Container {
   async init () {
     await super.init();
 
     const serverType = this.name.split('-')[0];
-    this.config = config.configuration.servers[serverType];
+    this.config = config.servers[serverType];
     // this.logger.info(`Server config for ${serverType}:`);
     // console.log(this.config);
 

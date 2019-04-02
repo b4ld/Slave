@@ -1,51 +1,31 @@
 const path = require('path');
 const fs = require('fs');
-const xml = require('xml2js');
+const xmlToJs = require('xml2js');
 
 let logger = require('./logger')('Config');
+const ConfigModel = require('./configuration.model');
 const ConfigurationException = require('./configuration.exception');
+const InvalidConfigurationException = require('./invalid-configuration.exception');
 const ServerPropertyType = require('../server/server-property.enum');
 
 const configFilePath = path.join(__dirname, '../slave-config-template.xml');
 
-const parser = new xml.Parser({
+const parser = new xmlToJs.Parser({
   explicitArray: false,
-  attrValueProcessors: [xml.processors.parseBooleans]
+  attrValueProcessors: [xmlToJs.processors.parseBooleans]
 });
-const configFile = fs.readFileSync(configFilePath);
-
-/** @type {Configuration} */
-const configuration = {};
-
-function load () {
-  return new Promise((resolve, reject) => {
-    parser.parseString(configFile, (err, result) => {
-      try {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        loadXmlConfiguration(result);
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
-    });
-  });
-}
 
 /**
  * Load the configuration from the xml object
  * 
- * @param {object} result object retrieved from the configuration file
+ * @returns {ConfigModel} - The parsed configuration
  */
-function loadXmlConfiguration (result) {
+function loadAndParse () {
   logger.info(`Loading ${path.basename(configFilePath)}...`);
+  const result = getConfigFileContents();
 
   if (!result.Configuration) {
-    logger.info('Invalid configuration file!');
-    return;
+    throw new InvalidConfigurationException();
   }
 
   const config = result.Configuration;
@@ -57,29 +37,33 @@ function loadXmlConfiguration (result) {
     !config.Daemon.PortRange.Start ||
     !config.Daemon.PortRange.End
   ) {
-    logger.info('Invalid daemon configuration!');
-    return;
+    throw new InvalidConfigurationException('Invalid daemon configuration!');
   }
-
-  configuration.mountDir = config.Daemon.MountDir;
-  configuration.portRange = {
+  
+  const mountDir = config.Daemon.MountDir;
+  const portRange = {
     start: config.Daemon.PortRange.Start,
     end: config.Daemon.PortRange.End
   };
-  configuration.servers = {};
+  const servers = {};
 
   if (config.Servers) {
     if (Array.isArray(config.Servers.Server)) {
       for (const server of config.Servers.Server) {
         const s = parseServer(server);
-        configuration.servers[s.name] = s;
+        servers[s.name] = s;
       }
     } else {
       const s = parseServer(config.Servers.Server);
-      configuration.servers[s.name] = s;
+      servers[s.name] = s;
     }
   }
-  logger.info(`Configuration loaded!`);
+
+  return new ConfigModel({
+    volume: mountDir,
+    portRange: portRange,
+    servers: servers
+  });
 }
 
 /**
@@ -196,42 +180,25 @@ function assertFieldDefined (field, message) {
 }
 
 /**
- * @typedef Configuration
- * @type {object}
- * @property {string} mountDir - Mounting directory for containers.
- * @property {PortRange} portRange - Port range to register containers.
- * @property {Object.<string, ServerType>} servers - All server types avaliable.
+ * Read the configuration file and parse to a js object
+ * 
+ * @returns {object} - object retrieved from the configuration file
  */
+function getConfigFileContents () {
+  const configFile = fs.readFileSync(configFilePath);
 
-/**
- * @typedef PortRange
- * @type {object}
- * @property {number} start - Port range start
- * @property {number} end - Port range end
- */
+  let err;
+  let xml;
+  parser.parseString(configFile, (e, r) => {
+    err = e;
+    xml = r;
+  });
 
-/**
- * @typedef ServerType
- * @type {object}
- * @property {string} name - Server type name
- * @property {ContainerImage} image - Server container image
- * @property {ServerProperties} properties - Server properties
- */
+  if (err) {
+    throw err;
+  }
 
-/**
- * @typedef ServerProperties
- * @type {object}
- * @property {boolean} mount - Mount server container to local folder
- * @property {boolean} autoRestart - Restart if container stopps
- * @property {boolean} singleInstance - Keep only one instance of this server type running
- * @property {boolean} deleteOnStop - Delete container on stop
- */
+  return xml;
+}
 
-/**
- * @typedef ContainerImage
- * @type {object}
- * @property {string} name - Image name
- */
-
-module.exports.load = load;
-module.exports.configuration = configuration;
+module.exports.loadAndParse = loadAndParse;
