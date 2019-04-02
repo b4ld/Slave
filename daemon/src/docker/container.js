@@ -106,6 +106,15 @@ module.exports = class Container extends EventEmitter {
   }
 
   /**
+   * Stop the container if running
+   */
+  async stop () {
+    if (this.status !== ContainerStatus.OFFLINE && this.status !== ContainerStatus.STOPPING) {
+      await this.container.stop();
+    }
+  }
+
+  /**
    * Update the container status
    * 
    * @param {string} status New status
