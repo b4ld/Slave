@@ -1,6 +1,6 @@
-const Logger = require('./config/logger');
+const Logger = require('./helpers/logger');
 const { DockerController } = require('./docker/docker.controller');
-const ConfigurationException = require('./config/configuration.exception');
+const ConfigurationException = require('./configuration/exceptions/configuration.exception');
 
 const logger = Logger();
 const dockerController = new DockerController();

@@ -1,11 +1,11 @@
-const ConfigParser = require('./configuration-parser');
+const ConfigParser = require('../configuration/parsers/configuration.parser');
 
 let configuration = ConfigParser.loadAndParse();
 
 /**
  * Get all container images configured
  * 
- * @returns {import('./configuration.model').ContainerImage[]}
+ * @returns {import('../configuration/configuration.model').ContainerImage[]}
  */
 function getImages () {
   return Object.values(configuration.servers)

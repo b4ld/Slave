@@ -1,9 +1,9 @@
 const Docker = require('dockerode');
-const logger = require('../config/logger')();
+const logger = require('../helpers/logger')();
 const Server = require('../server/server');
 const ContainerStatus = require('./container-status.enum');
 
-const config = require('../config/configuration');
+const config = require('../helpers/configuration');
 const client = new Docker();
 
 module.exports.client = client;

@@ -25,6 +25,8 @@ module.exports = class ConfigurationModel {
      * @type {Object.<string, ServerType>}
      */
     this.servers = configuration.servers;
+
+    console.log(this.servers.hub.properties);
   }
 };
 

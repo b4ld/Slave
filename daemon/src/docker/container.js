@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const logger = require('../config/logger');
+const logger = require('../helpers/logger');
 const ContainerStatus = require('./container-status.enum');
 const EventType = require('./event-types.enum');
 

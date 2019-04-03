@@ -2,18 +2,20 @@ const path = require('path');
 const fs = require('fs');
 const xmlToJs = require('xml2js');
 
-let logger = require('./logger')('Config');
-const ConfigModel = require('./configuration.model');
-const ConfigurationException = require('./configuration.exception');
-const InvalidConfigurationException = require('./invalid-configuration.exception');
-const ServerPropertyType = require('../server/server-property.enum');
+let logger = require('../../helpers/logger')('Config');
+const ConfigModel = require('../configuration.model');
+const ConfigurationException = require('../exceptions/configuration.exception');
+const InvalidConfigurationException = require('../exceptions/invalid-configuration.exception');
+const parseServerProperties = require('./configuration-property.parser');
 
-const configFilePath = path.join(__dirname, '../slave-config-template.xml');
+const configFilePath = path.join(__dirname, '../../slave-config-template.xml');
 
 const parser = new xmlToJs.Parser({
   explicitArray: false,
   attrValueProcessors: [xmlToJs.processors.parseBooleans]
 });
+
+/** @typedef {import('../configuration.model').ServerType} ServerType */
 
 /**
  * Load the configuration from the xml object
@@ -100,74 +102,6 @@ function parseServer (serverObject) {
 
 /**
  *
- * @param {object[]} props
- * @returns {ServerProperties}
- */
-function parseServerProperties (serverName, props) {
-  /** @type {ServerProperties} */
-  const properties = {};
-
-  if (props) {
-    if (Array.isArray(props)) {
-      for (const prop of props) {
-        if (!prop.$ || !prop.$.name) {
-          continue;
-        }
-
-        const property = isValidServerProperty(prop.$.name);
-        if (!property) {
-          logger.warn(
-            `${serverName} - The property ${prop.$.name} does not exist!`
-          );
-          continue;
-        }
-
-        properties[property.name] = prop.$.type === undefined 
-          ? property.default
-          : prop.$.type;
-      }
-    } else if (props.$ && props.$.name) {
-      const property = isValidServerProperty(props.$.name);
-      if (!property) {
-        logger.warn(
-          `${serverName} - The property ${props.$.name} does not exist!`
-        );
-      } else {
-        properties[property.name] = props.$.type || property.default;
-      }
-    }
-  }
-
-  if (properties[ServerPropertyType.AUTO_RESTART]) {
-    properties[ServerPropertyType.DELETE_ON_STOP] = false;
-  }
-
-  // Fill undefined properties
-  for (const p of Object.values(ServerPropertyType)) {
-    if (properties[p.name] === undefined) {
-      properties[p.name] = p.default;
-    }
-  }
-
-  return properties;
-}
-
-/**
- * Check if the property exists
- *
- * @param {string} property property to check
- * @returns {string} ServerProperty if property exists, undefined otherwise
- */
-function isValidServerProperty (property) {
-  for (const p of Object.values(ServerPropertyType)) {
-    if (p.name.toLowerCase() === property.toLowerCase()) {
-      return p;
-    }
-  }
-}
-
-/**
- *
  * @param {object} field
  * @param {string} message
  */
@@ -202,3 +136,4 @@ function getConfigFileContents () {
 }
 
 module.exports.loadAndParse = loadAndParse;
+module.exports.logger = logger;
