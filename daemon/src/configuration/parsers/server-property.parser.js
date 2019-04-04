@@ -97,6 +97,5 @@ module.exports = (server, props) => {
   const parser = new ServerPropertyParser(server);
   parser.parse(props);
 
-  console.log(`${parser.server} properties:\n`, parser.get());
   return parser.get();
 };
