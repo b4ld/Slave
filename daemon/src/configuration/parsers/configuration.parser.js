@@ -6,7 +6,7 @@ let logger = require('../../helpers/logger')('Config');
 const ConfigModel = require('../configuration.model');
 const ConfigurationException = require('../exceptions/configuration.exception');
 const InvalidConfigurationException = require('../exceptions/invalid-configuration.exception');
-const parseServerProperties = require('./configuration-property.parser');
+const parseServerProperties = require('./server-property.parser');
 
 const configFilePath = path.join(__dirname, '../../slave-config-template.xml');
 

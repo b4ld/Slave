@@ -14,5 +14,9 @@ module.exports = Object.freeze({
   DELETE_ON_STOP: {
     name: 'deleteOnStop',
     default: true
+  },
+  VOLUME: {
+    name: 'volume',
+    default: []
   }
 });

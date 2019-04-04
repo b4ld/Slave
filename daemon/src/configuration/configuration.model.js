@@ -25,8 +25,6 @@ module.exports = class ConfigurationModel {
      * @type {Object.<string, ServerType>}
      */
     this.servers = configuration.servers;
-
-    console.log(this.servers.hub.properties);
   }
 };
 
@@ -52,6 +50,7 @@ module.exports = class ConfigurationModel {
  * @property {boolean} autoRestart - Restart if container stopps
  * @property {boolean} singleInstance - Keep only one instance of this server type running
  * @property {boolean} deleteOnStop - Delete container on stop
+ * @property {string[]} volume - Delete container on stop
  */
 
 /**

@@ -14,7 +14,8 @@
             </Image>
             <Properties>
                 <Property name="autoRestart" type="true" />
-                <Property name="deleteOnStop" type="false" />
+                <Property name="volume" type="/home/mc/hub/plugins:/data/plugins" />
+                <Property name="volume" type="/home/mc/hub/world:/data/world" />
             </Properties>
         </Server>
         <Server>
