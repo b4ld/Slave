@@ -1,12 +1,16 @@
 const Logger = require('./helpers/logger');
 const { DockerController } = require('./docker/docker.controller');
+const ServerController = require('./server/server.controller');
 const ConfigurationException = require('./configuration/exceptions/configuration.exception');
 
 const logger = Logger();
 const dockerController = new DockerController();
+const serverController = new ServerController(dockerController);
 
 async function initialize () {
   await dockerController.init();
+
+  serverController.createServer('hub');
 }
 
 initialize()
@@ -24,3 +28,8 @@ initialize()
     logger.error('Error initilizing slave daemon!', { stack: err.stack });
     process.exit(1);
   });
+
+module.exports = {
+  dockerController,
+  serverController
+};

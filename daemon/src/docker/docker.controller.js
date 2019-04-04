@@ -93,6 +93,13 @@ module.exports.DockerController = class DockerController {
     }
   }
 
+  createContainer (serverModel) {
+    logger.info('Creating server with model: ');
+    console.log(serverModel);
+    return serverModel;
+    // TODO
+  }
+
   /**
    * Initialize a zentry server container
    *
