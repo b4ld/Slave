@@ -25,7 +25,7 @@ module.exports = class ServerModel {
      * 
      * @type {ServerProperties}
     */
-    this.serverProperties = serverProperties;
+    this.properties = serverProperties;
   }
 };
 
