@@ -4,6 +4,7 @@ const xmlToJs = require('xml2js');
 
 let logger = require('../../helpers/logger')('Config');
 const ConfigModel = require('../configuration.model');
+const ServerModel = require('../../server/server.model');
 const ConfigurationException = require('../exceptions/configuration.exception');
 const InvalidConfigurationException = require('../exceptions/invalid-configuration.exception');
 const parseServerProperties = require('./server-property.parser');
@@ -14,8 +15,6 @@ const parser = new xmlToJs.Parser({
   explicitArray: false,
   attrValueProcessors: [xmlToJs.processors.parseBooleans]
 });
-
-/** @typedef {import('../configuration.model').ServerType} ServerType */
 
 /**
  * Load the configuration from the xml object
@@ -71,7 +70,7 @@ function loadAndParse () {
 /**
  *
  * @param {object} serverObject
- * @returns {ServerType} server
+ * @returns {ServerModel} server
  */
 function parseServer (serverObject) {
   logger = logger.child({ subLabel: serverObject.Name });
@@ -81,20 +80,19 @@ function parseServer (serverObject) {
     serverObject.Properties = { Property: [] };
   }
 
-  /** @type {ServerType} */
-  const server = {
-    name: assertFieldDefined(serverObject.Name, 'Server name is undefined!'),
-    image: {
-      name: assertFieldDefined(
-        serverObject.Image.Name,
-        'Server image name is undefined!'
-      )
-    },
-    properties: parseServerProperties(
-      serverObject.Name,
-      serverObject.Properties.Property
+  const name = assertFieldDefined(serverObject.Name, 'Server name is undefined!');
+  const image = {
+    name: assertFieldDefined(
+      serverObject.Image.Name,
+      'Server image name is undefined!'
     )
   };
+  const properties = parseServerProperties(
+    serverObject.Name,
+    serverObject.Properties.Property
+  );
+
+  const server = new ServerModel(name, image, properties);
 
   logger.info(`Server configuration loaded for "${server.name}"!`);
   return server;
