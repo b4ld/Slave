@@ -2,6 +2,7 @@
 const ServerModel = require('./server.model');
 const Server = require('./server');
 const InvalidServerException = require('./exceptions/invalid-server.exception');
+const ContainerStatus = require('../docker/container-status.enum');
 
 const config = require('../helpers/configuration');
 const logger = require('../helpers/logger')();
@@ -24,30 +25,67 @@ module.exports = class ServerController {
     this.servers = {};
   }
 
+  async init () {
+    logger.info('Checking for existing containers...');
+    const containers = await this.dockerController.getContainers();
+    for (const container of containers) {
+      await this.initServer(container);
+    }
+  }
+
   /**
    * Create a new server with the given configuration.
    * 
-   * @param {ServerModel|string} server The ServerModel or a valid server name
+   * @param {ServerModel|string} serverModel The ServerModel or a valid server name
    * @returns {Server} The server created
    */
-  createServer (server) {
-    if (typeof server === 'string') {
-      const serverModel = config.servers[server];
-      if (!serverModel) {
-        throw new InvalidServerException(`The server ${server} does not exist`);
+  async createServer (serverModel) {
+    if (typeof serverModel === 'string') {
+      const foundServer = config.servers[serverModel];
+      if (!foundServer) {
+        throw new InvalidServerException(`The server ${serverModel} does not exist`);
       }
 
-      server = serverModel;
+      serverModel = foundServer;
     }
 
-    if (!(server instanceof ServerModel)) {
-      throw new InvalidServerException(`The server is not of type ServerModel. ${server}`);
+    if (!(serverModel instanceof ServerModel)) {
+      throw new InvalidServerException(`The server is not of type ServerModel. ${serverModel}`);
     }
 
-    const instance = this.dockerController.createContainer(server);
-    // this.registerServer(instance);
+    const newId = serverModel.properties.singleInstance ? undefined : this.getNextId(serverModel);
 
-    return instance;
+    logger.info('Creating a new "%s" container...', serverModel.name);
+    const container = await this.dockerController.createContainer(serverModel, this.getAvaliablePort(), newId);
+
+    const server = await this.initServer(container);
+
+    return server;
+  }
+
+  async initServer (container) {
+    const server = new Server(container);
+
+    try {
+      await server.init();
+    } catch (err) {
+      server.logger.error('Failed to initialize the server!', { stack: err.stack });
+    }
+
+    if (server.status === ContainerStatus.OFFLINE) {
+      if (server.config.properties.deleteOnStop) {
+        server.logger.info('Deleting container...');
+        server.remove()
+          .then(() => server.logger.info('Container deleted!'))
+          .catch(err => server.logger.error('Failed to delete the container!', { stack: err.stack }));
+      } else if (server.config.properties.autoRestart) {
+        server.start();
+      }
+    }
+
+    this.registerServer(server);
+
+    return server;
   }
 
   /**
@@ -57,5 +95,23 @@ module.exports = class ServerController {
    */
   registerServer (server) {
     this.servers[server.container.id] = server;
+  }
+
+  getNextId (serverModel) {
+    const usedIds = Object.values(this.servers)
+      .filter(s => s.config.name === serverModel.name)
+      .map(s => s.name.split('-')[1])
+      .filter(id => id !== undefined && !isNaN(id))
+      .map(id => parseInt(id))
+      .sort()
+      .reverse();
+
+    const newestId = usedIds.length > 0 ? usedIds[0] : -1;
+
+    return newestId + 1;
+  }
+
+  getAvaliablePort () {
+    return '25567';
   }
 };

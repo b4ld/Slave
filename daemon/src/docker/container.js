@@ -30,10 +30,6 @@ module.exports = class Container extends EventEmitter {
       start: /^(.*?)\[[\d:]{8} INFO]: Done \((.*?)s\)! For help, type "help"/,
       stop: /^(.*?)\[[\d:]{8} INFO]: Stopping server/
     };
-
-    this.init()
-      .then(() => this.logger.info('Container "%s" loaded! Current status: %s', this.containerName, this.status))
-      .catch(err => this.logger.error('Failed to start the container!', { stack: err.stack }));
   }
 
   /**
@@ -51,8 +47,8 @@ module.exports = class Container extends EventEmitter {
     if (info.State.Running === true) {
       this.status = ContainerStatus.ONLINE;
 
-      this.attach()
-        .then(() => this.logger.info('Attached to the container.'));
+      await this.attach();
+      this.logger.info('Attached to the container.');
     }
   }
 

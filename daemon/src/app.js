@@ -1,19 +1,23 @@
-const Logger = require('./helpers/logger');
+const logger = require('./helpers/logger')();
+
+const start = new Date();
+logger.info('Starting the zentry daemon...');
+
 const { DockerController } = require('./docker/docker.controller');
 const ServerController = require('./server/server.controller');
 const ConfigurationException = require('./configuration/exceptions/configuration.exception');
 
-const logger = Logger();
 const dockerController = new DockerController();
 const serverController = new ServerController(dockerController);
 
 async function initialize () {
   await dockerController.init();
 
-  serverController.createServer('hub');
+  await serverController.init();
 }
 
 initialize()
+  .then(() => logger.info('Daemon initialized! (%dms)', new Date().getTime() - start.getTime()))
   .catch(err => {
     if (err instanceof ConfigurationException) {
       logger.error(`Configuration error: ${err.message}`, { stack: err.stack });

@@ -9,20 +9,6 @@ module.exports = class Server extends Container {
 
     const serverType = this.name.split('-')[0];
     this.config = config.servers[serverType];
-    // this.logger.info(`Server config for ${serverType}:`);
-    // console.log(this.config);
-
-    if (this.status === ContainerStatus.OFFLINE) {
-      if (this.config.properties.deleteOnStop) {
-        this.logger.info('Server stopped, deleting container...');
-        this.remove()
-          .then(() => this.logger.info('Container deleted!'))
-          .catch(err => this.logger.error('Failed to delete the container!', { stack: err.stack }));
-      } else if (this.config.properties.autoRestart) {
-        this.logger.info('Server is offline, restarting...');
-        this.start();
-      }
-    }
 
     this.on(EventType.STATUS_UPDATE, newStatus => {
       if (newStatus === ContainerStatus.OFFLINE) {

@@ -30,20 +30,29 @@ module.exports.DockerController = class DockerController {
     await this.ensureImagesLoaded();
     logger.info('All images required are loaded localy!');
 
-    logger.info('Checking for existing containers...');
-    const containers = await client.listContainers({ all: true });
-    for (const container of containers) {
-      if (this.isZentryServer(container)) {
-        logger.info('Found a zentry container! %s', container.Names);
-        this.initContainer(container);
-      }
-    }
-
     this.registerListener().catch(err =>
       logger.error('Failed to register docker event listener!', {
         stack: err.stack
       })
     );
+  }
+
+  /**
+   * Get all zentry containers currently running
+   * 
+   * @returns {Docker.Container[]}
+   */
+  async getContainers () {
+    const containers = [];
+    const list = await client.listContainers({ all: true });
+    for (const container of list) {
+      if (this.isZentryServer(container)) {
+        const c = client.getContainer(container.Id);
+        containers.push(c);
+      }
+    }
+
+    return containers;
   }
 
   /**
@@ -93,24 +102,50 @@ module.exports.DockerController = class DockerController {
     }
   }
 
-  createContainer (serverModel) {
-    logger.info('Creating server with model: ');
-    console.log(serverModel);
-    return serverModel;
-    // TODO
-  }
-
   /**
-   * Initialize a zentry server container
-   *
-   * @param {Docker.ContainerInfo} containerInfo
+   * Create a new container with the given properties
+   * 
+   * @param {import('../server/server.model')} serverModel - The server model to create the container from
+   * @param {string} port - Container port to expose
+   * @param {string} identifier - Unique identifier to the server, ex and auto-increment number
    */
-  initContainer (containerInfo) {
-    const container = client.getContainer(containerInfo.Id);
+  async createContainer (serverModel, port, identifier) {
+    const options = {
+      Image: serverModel.image.name,
+      AttachStdin: true,
+      OpenStdin: true,
+      AttachStdout: true,
+      AttachStderr: true,
+      Tty: true,
+      name: 'zentry-server-' + serverModel.name + (identifier !== undefined ? `-${identifier}` : ''),
+      ExposedPorts: {
+        '25565/tcp': {}
+      },
+      HostConfig: {
+        Binds: serverModel.properties.volume,
+        PortBindings: {
+          '25565/tcp': [
+            {
+              HostIp: '0.0.0.0',
+              HostPort: port
+            }
+          ]
+        }
+      },
+      // Volumes: {
+      //   '/data': { }
+      // },
+      Env: [
+        'EULA=TRUE',
+        'PAPER_DOWNLOAD_URL=https://heroslender.com/assets/PaperSpigot-1.8.8.jar',
+        'TYPE=PAPER',
+        'VERSION=1.8.8',
+        'ENABLE_RCON=false'
+      ]
+    };
 
-    const c = new Server(container);
-
-    this.containers[c.container.id] = c;
+    const container = await client.createContainer(options);
+    return container;
   }
 
   /**
