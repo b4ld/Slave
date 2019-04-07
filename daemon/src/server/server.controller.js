@@ -114,7 +114,18 @@ class ServerController {
   }
 
   getAvaliablePort () {
-    return '25567';
+    const portsInUSe = Object.values(this.servers).map(s => s.port);
+    const portRange = config.portRange;
+    let firstAvaliable = -1;
+
+    for (let port = portRange.start; port < portRange.end; port++) {
+      if (!portsInUSe.includes(port.toString())) {
+        firstAvaliable = port;
+        break;
+      }
+    }
+    
+    return firstAvaliable.toString();
   }
 };
 

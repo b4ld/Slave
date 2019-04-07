@@ -51,6 +51,9 @@ module.exports = class Server extends EventEmitter {
     this.logger.info('The server is now starting.');
     this.updateStatus(ServerStatus.STARTING);
     await this.container.start();
+    
+    const inspect = await this.container.inspect();
+    this.port = inspect.port;
 
     await this.container.attach();
     this.logger.info('Attached to the container, waiting for it to fully start.');

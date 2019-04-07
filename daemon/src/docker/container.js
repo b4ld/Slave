@@ -30,10 +30,12 @@ module.exports = class Container extends EventEmitter {
     this.name = info.Name.substr(1);
     this.logger = logger(this.name);
 
+    const ports = info.NetworkSettings.Ports['25565/tcp'] || [{ HostPort: '-1' }];
+
     return {
       name: info.Name.replace('/' + 'zentry-server-', ''),
       status: info.State.Running ? ServerStatus.ONLINE : ServerStatus.OFFLINE,
-      port: info.NetworkSettings.Ports['25565/tcp'][0].HostPort
+      port: ports[0].HostPort
     };
   }
 
