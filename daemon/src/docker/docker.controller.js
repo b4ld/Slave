@@ -1,16 +1,15 @@
 const Docker = require('dockerode');
-const logger = require('../helpers/logger')();
-const Server = require('../server/server');
-const ContainerStatus = require('./container-status.enum');
+const Container = require('./container');
+const logger = require('../helpers/logger')('Docker');
+const ServerStatus = require('../server/enums/server-status.enum');
 
 const config = require('../helpers/configuration');
 const client = new Docker();
 
-module.exports.client = client;
 /**
  * @property {Object.<string, Container>} containers - Containers cache
  */
-module.exports.DockerController = class DockerController {
+class DockerController {
   constructor () {
     /** @type {Object.<string, Container>} */
     this.containers = {};
@@ -26,9 +25,9 @@ module.exports.DockerController = class DockerController {
     logger.info('Connecting to Docker...');
     await client.listContainers();
 
-    logger.info('Donwloading required images...');
+    logger.info('Updating images...');
     await this.ensureImagesLoaded();
-    logger.info('All images required are loaded localy!');
+    logger.info('All images are updated!');
 
     this.registerListener().catch(err =>
       logger.error('Failed to register docker event listener!', {
@@ -40,14 +39,16 @@ module.exports.DockerController = class DockerController {
   /**
    * Get all zentry containers currently running
    * 
-   * @returns {Docker.Container[]}
+   * @returns {Container[]}
    */
   async getContainers () {
     const containers = [];
     const list = await client.listContainers({ all: true });
     for (const container of list) {
       if (this.isZentryServer(container)) {
-        const c = client.getContainer(container.Id);
+        const dc = client.getContainer(container.Id);
+
+        const c = new Container(dc);
         containers.push(c);
       }
     }
@@ -74,11 +75,11 @@ module.exports.DockerController = class DockerController {
       const c = this.containers[msg.id];
       if (c) {
         if (msg.Action === 'die') {
-          c.updateStatus(ContainerStatus.OFFLINE);
+          c.updateStatus(ServerStatus.OFFLINE);
         } else if (msg.Action === 'start') {
-          if (c.status === ContainerStatus.OFFLINE) {
+          if (c.status === ServerStatus.OFFLINE) {
             c.logger.warn('Container started from outside the daemon.');
-            c.updateStatus(ContainerStatus.STARTING);
+            c.updateStatus(ServerStatus.STARTING);
             c.attach()
               .then(() => c.logger.info('Attached to the container, waiting for it to fully start.'));
           }
@@ -145,7 +146,8 @@ module.exports.DockerController = class DockerController {
     };
 
     const container = await client.createContainer(options);
-    return container;
+    const c = new Container(container);
+    return c;
   }
 
   /**
@@ -164,3 +166,5 @@ module.exports.DockerController = class DockerController {
     return false;
   }
 };
+
+module.exports = new DockerController();

@@ -1,4 +1,4 @@
-const ServerPropertyType = require('../../server/server-property.enum');
+const ServerPropertyType = require('../../server/enums/server-property.enum');
 const logger = require('./configuration.parser').logger;
 
 class ServerPropertyParser {

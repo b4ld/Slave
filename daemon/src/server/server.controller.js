@@ -1,20 +1,18 @@
-
 const ServerModel = require('./server.model');
 const Server = require('./server');
 const InvalidServerException = require('./exceptions/invalid-server.exception');
-const ContainerStatus = require('../docker/container-status.enum');
+const ServerStatus = require('./enums/server-status.enum');
 
+const dockerController = require('../docker/docker.controller');
 const config = require('../helpers/configuration');
 const logger = require('../helpers/logger')();
 
-module.exports = class ServerController {
+class ServerController {
   /**
    * 
    * @param {import('../docker/docker.controller').DockerController} dockerController 
    */
-  constructor (dockerController) {
-    this.dockerController = dockerController;
-
+  constructor () {
     /** 
      * All cached server instances.
      * A map with the container id as key
@@ -27,7 +25,7 @@ module.exports = class ServerController {
 
   async init () {
     logger.info('Checking for existing containers...');
-    const containers = await this.dockerController.getContainers();
+    const containers = await dockerController.getContainers();
     for (const container of containers) {
       await this.initServer(container);
     }
@@ -56,13 +54,17 @@ module.exports = class ServerController {
     const newId = serverModel.properties.singleInstance ? undefined : this.getNextId(serverModel);
 
     logger.info('Creating a new "%s" container...', serverModel.name);
-    const container = await this.dockerController.createContainer(serverModel, this.getAvaliablePort(), newId);
+    const container = await dockerController.createContainer(serverModel, this.getAvaliablePort(), newId);
 
     const server = await this.initServer(container);
 
     return server;
   }
 
+  /**
+   * 
+   * @param {import('../docker/container')} container 
+   */
   async initServer (container) {
     const server = new Server(container);
 
@@ -72,7 +74,7 @@ module.exports = class ServerController {
       server.logger.error('Failed to initialize the server!', { stack: err.stack });
     }
 
-    if (server.status === ContainerStatus.OFFLINE) {
+    if (server.status === ServerStatus.OFFLINE) {
       if (server.config.properties.deleteOnStop) {
         server.logger.info('Deleting container...');
         server.remove()
@@ -115,3 +117,5 @@ module.exports = class ServerController {
     return '25567';
   }
 };
+
+module.exports = new ServerController();
