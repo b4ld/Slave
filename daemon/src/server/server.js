@@ -37,6 +37,10 @@ module.exports = class Server extends EventEmitter {
       this.updateStatus(inspect.status);
     }
 
+    if (this.status === ServerStatus.OFFLINE) {
+      await this.start();
+    }
+
     this.registerListeners();
   }
 

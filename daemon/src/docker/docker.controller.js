@@ -1,20 +1,12 @@
 const Docker = require('dockerode');
 const Container = require('./container');
-const logger = require('../helpers/logger')('Docker');
 const ServerStatus = require('../server/enums/server-status.enum');
 
+const logger = require('../helpers/logger')('Docker');
 const config = require('../helpers/configuration');
 const client = new Docker();
 
-/**
- * @property {Object.<string, Container>} containers - Containers cache
- */
 class DockerController {
-  constructor () {
-    /** @type {Object.<string, Container>} */
-    this.containers = {};
-  }
-
   /**
    * Initialize the docker controller.
    * Ensures images are updated and check for
