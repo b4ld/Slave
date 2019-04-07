@@ -46,10 +46,15 @@ if (process.env.NODE_ENV !== 'production') {
         })(),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
         format.printf(
-          info =>
-            `${info.timestamp} ${info.level} ${
-              info.label ? `[${info.label}] ` : ''
-            }${info.message}${info.stack ? `\n${info.stack}` : ''}`
+          info => {
+            const label = info.label ? `[${info.label}] ` : '';
+            let stack = info.stack ? `\n${info.stack}` : '';
+            if (!stack && info.err) {
+              stack = `\n${info.err.stack}`;
+            }
+
+            return `${info.timestamp} ${info.level} ${label}${info.message}${stack}`;
+          }
         )
       )
     })
