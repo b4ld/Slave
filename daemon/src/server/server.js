@@ -94,8 +94,8 @@ module.exports = class Server extends EventEmitter {
   }
 
   async registerListeners () {
-    this.container.on(EventType.STATUS_UPDATE, newStatus => this.updateStatus);
-    this.container.on(EventType.CONSOLE_OUTPUT, this.onConsoleOutput);
+    this.container.on(EventType.STATUS_UPDATE, newStatus => this.updateStatus(newStatus));
+    this.container.on(EventType.CONSOLE_OUTPUT, data => this.onConsoleOutput(data));
 
     this.on(EventType.STATUS_UPDATE, newStatus => {
       if (newStatus === ServerStatus.OFFLINE) {
