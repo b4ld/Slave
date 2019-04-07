@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const xmlToJs = require('xml2js');
 
-let logger = require('../../helpers/logger')('Config');
+let logger = require('../../helpers/logger')('Config', 'cyan');
 const ConfigModel = require('../configuration.model');
 const ServerModel = require('../../server/server.model');
 const ConfigurationException = require('../exceptions/configuration.exception');

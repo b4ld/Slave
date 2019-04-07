@@ -39,12 +39,12 @@ if (process.env.NODE_ENV !== 'production') {
             info.timestamp = colors.green(info.timestamp);
           }
           if (info.label) {
-            info.label = colors.yellow(info.label);
+            info.label = colors[info.color || 'yellow'](info.label);
           }
 
           return info;
         })(),
-        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+        format.timestamp({ format: 'HH:mm:ss.SSS' }), // YYYY-MM-DD 
         format.printf(
           info => {
             const label = info.label ? `[${info.label}] ` : '';
@@ -61,11 +61,11 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
-module.exports = opts => {
+module.exports = (opts, color) => {
   if (typeof opts === 'string') {
-    return logger.child({ label: opts });
+    return logger.child({ label: opts, color });
   } else if (typeof opts === 'object') {
-    return logger.child(...opts);
+    return logger.child(...opts, color);
   }
 
   return logger;
