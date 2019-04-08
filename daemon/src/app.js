@@ -1,37 +1,50 @@
+const amqp = require('amqplib/callback_api');
 const logger = require('./helpers/logger')();
-
 const start = new Date();
+
 logger.info('Starting the zentry daemon.');
 
 const ConfigurationException = require('./configuration/exceptions/configuration.exception');
 
 const dockerController = require('./docker/docker.controller');
 const serverController = require('./server/server.controller');
+const brokerController = require('./broker/broker.controller');
 
-async function initialize () {
+async function initialize() {
   await dockerController.init();
-
   await serverController.init();
+
+  await brokerController.init({
+    hostname: 'localhost',
+    queue: 'lab',
+  });
 }
 
 initialize()
-  .then(() => logger.info('Daemon initialized! (%dms)', new Date().getTime() - start.getTime()))
+  .then(() =>
+    logger.info(
+      'Daemon initialized! (%dms)',
+      new Date().getTime() - start.getTime()
+    )
+  )
   .catch(err => {
     if (err instanceof ConfigurationException) {
       logger.error(`Configuration error: ${err.message}`, { err });
       return;
     }
 
-    if ((err.errno === 'ENOENT' || err.errno === 'ETIMEDOUT') && err.syscall === 'connect') {
+    if (
+      (err.errno === 'ENOENT' || err.errno === 'ETIMEDOUT') &&
+      err.syscall === 'connect'
+    ) {
       logger.error('Error connecting to docker!', { err });
       return;
     }
-    
+
     logger.error('Error initilizing slave daemon!', { err });
     process.exit(1);
   });
-
 module.exports = {
   dockerController,
-  serverController
+  serverController,
 };
