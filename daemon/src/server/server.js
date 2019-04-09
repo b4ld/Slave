@@ -1,12 +1,10 @@
 const EventEmitter = require('events');
 
 const Logger = require('../helpers/logger');
-const EventType = require('../docker/event-types.enum');
+const DockerEventEnum = require('../docker/docker-event.enum');
 const config = require('../helpers/configuration');
 const ServerStatus = require('./enums/server-status.enum');
 const ServerException = require('./exceptions/server.exception');
-
-const serverController = require('./server.controller');
 
 module.exports = class Server extends EventEmitter {
   /**
@@ -82,7 +80,6 @@ module.exports = class Server extends EventEmitter {
       await this.container.stop();
     } else {
       await this.container.remove();
-      delete serverController.servers[this.container.id];
     }
   }
 
@@ -94,20 +91,19 @@ module.exports = class Server extends EventEmitter {
   updateStatus (status) {
     this.status = status;
     this.logger.child({ label: `${this.name} status` }).debug(this.status);
-    this.emit(EventType.STATUS_UPDATE, status);
+    this.emit(DockerEventEnum.STATUS_UPDATE, status);
   }
 
   async registerListeners () {
-    this.container.on(EventType.STATUS_UPDATE, newStatus => this.updateStatus(newStatus));
-    this.container.on(EventType.CONSOLE_OUTPUT, data => this.onConsoleOutput(data));
+    this.container.on(DockerEventEnum.STATUS_UPDATE, newStatus => this.updateStatus(newStatus));
+    this.container.on(DockerEventEnum.CONSOLE_OUTPUT, data => this.onConsoleOutput(data));
 
-    this.on(EventType.STATUS_UPDATE, newStatus => {
+    this.on(DockerEventEnum.STATUS_UPDATE, newStatus => {
       if (newStatus === ServerStatus.OFFLINE) {
         if (this.config.properties.deleteOnStop) {
           this.logger.info('Server stopped, deleting container...');
           this.remove()
-            .then(() => this.logger.info('Container deleted!'))
-            .catch(err => this.logger.error('Failed to delete the container!', { stack: err.stack }));
+            .catch(err => this.logger.error('Failed to delete the container!', { err }));
         } else if (this.config.properties.autoRestart) {
           this.logger.info('Restarting the server...');
           this.start();

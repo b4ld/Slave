@@ -1,12 +1,14 @@
+const EventEmitter = require('events');
+
 const Docker = require('dockerode');
 const Container = require('./container');
-const ServerStatus = require('../server/enums/server-status.enum');
+const DockerEventEnum = require('./docker-event.enum');
 
 const logger = require('../helpers/logger')('Docker');
 const config = require('../helpers/configuration');
 const client = new Docker();
 
-class DockerController {
+class DockerController extends EventEmitter {
   /**
    * Initialize the docker controller.
    * Ensures images are updated and check for
@@ -18,7 +20,7 @@ class DockerController {
     await client.listContainers();
 
     logger.info('Updating images...');
-    await this.ensureImagesLoaded();
+    // await this.ensureImagesLoaded();
     logger.info('All images are updated!');
 
     this.registerListener().catch(err =>
@@ -63,19 +65,12 @@ class DockerController {
       if (!msg || !msg.Type || msg.Type !== 'container' || !msg.Action) {
         return;
       }
-
-      const c = this.containers[msg.id];
-      if (c) {
-        if (msg.Action === 'die') {
-          c.updateStatus(ServerStatus.OFFLINE);
-        } else if (msg.Action === 'start') {
-          if (c.status === ServerStatus.OFFLINE) {
-            c.logger.warn('Container started from outside the daemon.');
-            c.updateStatus(ServerStatus.STARTING);
-            c.attach()
-              .then(() => c.logger.info('Attached to the container, waiting for it to fully start.'));
-          }
-        }
+      if (msg.Action === 'die') {
+        this.emit(DockerEventEnum.CONTAINER_DEAD, msg.id);
+      } else if (msg.Action === 'start') {
+        this.emit(DockerEventEnum.CONTAINER_START, msg.id);
+      } else if (msg.Action === 'destroy') {
+        this.emit(DockerEventEnum.CONTAINER_REMOVE, msg.id);
       }
     });
   }

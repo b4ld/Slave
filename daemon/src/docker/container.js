@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const logger = require('../helpers/logger');
 const ServerStatus = require('../server/enums/server-status.enum');
-const EventType = require('./event-types.enum');
+const DockerEventEnum = require('./docker-event.enum');
 
 /** @typedef {import('dockerode').Container} DockerContainer */
 
@@ -56,7 +56,7 @@ module.exports = class Container extends EventEmitter {
     stream.on('data', (data) => {
       data.toString().split('\n').forEach((line) => {
         if (line) {
-          this.emit(EventType.CONSOLE_OUTPUT, line.trim());
+          this.emit(DockerEventEnum.CONSOLE_OUTPUT, line.trim());
         }
       });
     }).on('end', () => {

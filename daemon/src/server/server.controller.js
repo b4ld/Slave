@@ -2,16 +2,13 @@ const ServerModel = require('./server.model');
 const Server = require('./server');
 const InvalidServerException = require('./exceptions/invalid-server.exception');
 const ServerStatus = require('./enums/server-status.enum');
+const DockerEventEnum = require('../docker/docker-event.enum');
 
 const dockerController = require('../docker/docker.controller');
 const config = require('../helpers/configuration');
 const logger = require('../helpers/logger')();
 
 class ServerController {
-  /**
-   * 
-   * @param {import('../docker/docker.controller').DockerController} dockerController 
-   */
   constructor () {
     /** 
      * All cached server instances.
@@ -24,11 +21,29 @@ class ServerController {
   }
 
   async init () {
-    logger.info('Checking for existing containers...');
+    logger.info('Checking for existing servers...');
     const containers = await dockerController.getContainers();
     for (const container of containers) {
       await this.initServer(container);
     }
+
+    dockerController.on(DockerEventEnum.CONTAINER_START, containerId => {
+      const server = this.servers[containerId];
+      if (server && server.status === ServerStatus.OFFLINE) {
+        server.logger.warn('Container started from outside the daemon.');
+        server.updateStatus(ServerStatus.STARTING);
+        server.attach()
+          .then(() => server.logger.info('Attached to the container, waiting for it to fully start.'));
+      }
+    }).on(DockerEventEnum.CONTAINER_DEAD, containerId => {
+      const server = this.servers[containerId];
+      if (server) {
+        server.updateStatus(ServerStatus.OFFLINE);
+      }
+    }).on(DockerEventEnum.CONTAINER_REMOVE, containerId => {
+      logger.debug('The server %s was removed.', this.servers[containerId].name);
+      delete this.servers[containerId];
+    });
   }
 
   /**
