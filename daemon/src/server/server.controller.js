@@ -2,119 +2,151 @@ const ServerModel = require('./server.model');
 const Server = require('./server');
 const InvalidServerException = require('./exceptions/invalid-server.exception');
 const ServerStatus = require('./enums/server-status.enum');
-const DockerEventEnum = require('../docker/docker-event.enum');
 
+const DockerEventEnum = require('../docker/docker-event.enum');
 const dockerController = require('../docker/docker.controller');
+const numOfSlaves = require('../features/metrics/metrics.controller')
+  .numOfSlaves;
+
 const config = require('../helpers/configuration');
 const logger = require('../helpers/logger')();
 
 class ServerController {
-  constructor () {
-    /** 
+  constructor() {
+    /**
      * All cached server instances.
      * A map with the container id as key
      * and the server as value.
-     * 
-     * @type {Object.<string, Server>} 
-    */
+     *
+     * @type {Object.<string, Server>}
+     */
     this.servers = {};
   }
 
-  async init () {
+  async init() {
     logger.info('Checking for existing servers...');
     const containers = await dockerController.getContainers();
     for (const container of containers) {
       await this.initServer(container);
     }
 
-    dockerController.on(DockerEventEnum.CONTAINER_START, containerId => {
-      const server = this.servers[containerId];
-      if (server && server.status === ServerStatus.OFFLINE) {
-        server.logger.warn('Container started from outside the daemon.');
-        server.updateStatus(ServerStatus.STARTING);
-        server.attach()
-          .then(() => server.logger.info('Attached to the container, waiting for it to fully start.'));
-      }
-    }).on(DockerEventEnum.CONTAINER_DEAD, containerId => {
-      const server = this.servers[containerId];
-      if (server) {
-        server.updateStatus(ServerStatus.OFFLINE);
-      }
-    }).on(DockerEventEnum.CONTAINER_REMOVE, containerId => {
-      logger.debug('The server %s was removed.', this.servers[containerId].name);
-      delete this.servers[containerId];
-    });
+    dockerController
+      .on(DockerEventEnum.CONTAINER_START, containerId => {
+        const server = this.servers[containerId];
+        if (server && server.status === ServerStatus.OFFLINE) {
+          server.logger.warn('Container started from outside the daemon.');
+          server.updateStatus(ServerStatus.STARTING);
+          server
+            .attach()
+            .then(() =>
+              server.logger.info(
+                'Attached to the container, waiting for it to fully start.'
+              )
+            );
+        }
+      })
+      .on(DockerEventEnum.CONTAINER_DEAD, containerId => {
+        const server = this.servers[containerId];
+        if (server) {
+          server.updateStatus(ServerStatus.OFFLINE);
+        }
+      })
+      .on(DockerEventEnum.CONTAINER_REMOVE, containerId => {
+        logger.debug(
+          'The server %s was removed.',
+          this.servers[containerId].name
+        );
+        delete this.servers[containerId];
+      });
   }
 
   /**
    * Create a new server with the given configuration.
-   * 
+   *
    * @param {ServerModel|string} serverModel The ServerModel or a valid server name
    * @returns {Server} The server created
    */
-  async createServer (serverModel) {
+  async createServer(serverModel) {
     if (typeof serverModel === 'string') {
       const foundServer = config.servers[serverModel];
+
       if (!foundServer) {
-        throw new InvalidServerException(`The server ${serverModel} does not exist`);
+        throw new InvalidServerException(
+          `The server ${serverModel} does not exist`
+        );
       }
 
       serverModel = foundServer;
     }
 
     if (!(serverModel instanceof ServerModel)) {
-      throw new InvalidServerException(`The server is not of type ServerModel. ${serverModel}`);
+      throw new InvalidServerException(
+        `The server is not of type ServerModel. ${serverModel}`
+      );
     }
 
-    const newId = serverModel.properties.singleInstance ? undefined : this.getNextId(serverModel);
+    const newId = serverModel.properties.singleInstance
+      ? undefined
+      : this.getNextId(serverModel);
 
     logger.info('Creating a new "%s" container...', serverModel.name);
-    const container = await dockerController.createContainer(serverModel, this.getAvaliablePort(), newId);
-
+    const container = await dockerController.createContainer(
+      serverModel,
+      this.getAvaliablePort(),
+      newId
+    );
     const server = await this.initServer(container);
+
+    numOfSlaves.inc(1, new Date());
 
     return server;
   }
 
   /**
-   * 
-   * @param {import('../docker/container')} container 
+   *
+   * @param {import('../docker/container')} container
    */
-  async initServer (container) {
+  async initServer(container) {
     const server = new Server(container);
 
     try {
       await server.init();
     } catch (err) {
-      server.logger.error('Failed to initialize the server!', { stack: err.stack });
+      server.logger.error('Failed to initialize the server!', {
+        stack: err.stack,
+      });
     }
 
     if (server.status === ServerStatus.OFFLINE) {
       if (server.config.properties.deleteOnStop) {
         server.logger.info('Deleting container...');
-        server.remove()
+        server
+          .remove()
           .then(() => server.logger.info('Container deleted!'))
-          .catch(err => server.logger.error('Failed to delete the container!', { stack: err.stack }));
+          .catch(err =>
+            server.logger.error('Failed to delete the container!', {
+              stack: err.stack,
+            })
+          );
       } else if (server.config.properties.autoRestart) {
         server.start();
       }
     }
 
     this.registerServer(server);
-
     return server;
   }
 
   /**
    * Register a new server.
-   * 
+   *
    * @param {Server} server The server instance to register
    */
-  registerServer (server) {
+  registerServer(server) {
     this.servers[server.container.id] = server;
   }
 
-  getNextId (serverModel) {
+  getNextId(serverModel) {
     const usedIds = Object.values(this.servers)
       .filter(s => s.config.name === serverModel.name)
       .map(s => s.name.split('-')[1])
@@ -128,7 +160,7 @@ class ServerController {
     return newestId + 1;
   }
 
-  getAvaliablePort () {
+  getAvaliablePort() {
     const portsInUSe = Object.values(this.servers).map(s => s.port);
     const portRange = config.portRange;
     let firstAvaliable = -1;
@@ -139,9 +171,9 @@ class ServerController {
         break;
       }
     }
-    
+
     return firstAvaliable.toString();
   }
-};
+}
 
-module.exports = new ServerController();
+module.exports = ServerController;

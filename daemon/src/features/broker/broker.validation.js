@@ -1,5 +1,5 @@
 const Joi = require('@hapi/joi');
-const logger = require('../helpers/logger')('RabbitMQ', 'blue');
+const logger = require('../../helpers/logger')('RabbitMQ', 'blue');
 
 const schema = Joi.object().keys({
   hostname: Joi.string()

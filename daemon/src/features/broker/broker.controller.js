@@ -1,6 +1,6 @@
 const amqp = require('amqplib/callback_api');
 const validation = require('./broker.validation');
-const logger = require('../helpers/logger')('RabbitMQ', 'blue');
+const logger = require('../../helpers/logger')('RabbitMQ', 'blue');
 
 class BrokerController {
   async init(options = {}) {

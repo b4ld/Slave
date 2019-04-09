@@ -14,7 +14,7 @@ class DockerController extends EventEmitter {
    * Ensures images are updated and check for
    * existing zentry containers.
    */
-  async init () {
+  async init() {
     // Ensure connection established
     logger.info('Connecting to Docker...');
     await client.listContainers();
@@ -25,17 +25,17 @@ class DockerController extends EventEmitter {
 
     this.registerListener().catch(err =>
       logger.error('Failed to register docker event listener!', {
-        stack: err.stack
+        stack: err.stack,
       })
     );
   }
 
   /**
    * Get all zentry containers currently running
-   * 
+   *
    * @returns {Container[]}
    */
-  async getContainers () {
+  async getContainers() {
     const containers = [];
     const list = await client.listContainers({ all: true });
     for (const container of list) {
@@ -53,11 +53,11 @@ class DockerController extends EventEmitter {
   /**
    * Listen for docker events
    */
-  async registerListener () {
+  async registerListener() {
     const eventStream = await client.getEvents({
       Filters: {
-        type: 'container'
-      }
+        type: 'container',
+      },
     });
 
     eventStream.on('data', msg => {
@@ -80,7 +80,7 @@ class DockerController extends EventEmitter {
    * containers are present localy.
    * @private
    */
-  async ensureImagesLoaded () {
+  async ensureImagesLoaded() {
     const images = config.getImages();
 
     for (const image of images) {
@@ -92,12 +92,12 @@ class DockerController extends EventEmitter {
 
   /**
    * Create a new container with the given properties
-   * 
+   *
    * @param {import('../server/server.model')} serverModel - The server model to create the container from
    * @param {string} port - Container port to expose
    * @param {string} identifier - Unique identifier to the server, ex and auto-increment number
    */
-  async createContainer (serverModel, port, identifier) {
+  async createContainer(serverModel, port, identifier) {
     const options = {
       Image: serverModel.image.name,
       AttachStdin: true,
@@ -105,9 +105,12 @@ class DockerController extends EventEmitter {
       AttachStdout: true,
       AttachStderr: true,
       Tty: true,
-      name: 'zentry-server-' + serverModel.name + (identifier !== undefined ? `-${identifier}` : ''),
+      name:
+        'zentry-server-' +
+        serverModel.name +
+        (identifier !== undefined ? `-${identifier}` : ''),
       ExposedPorts: {
-        '25565/tcp': {}
+        '25565/tcp': {},
       },
       HostConfig: {
         Binds: serverModel.properties.volume,
@@ -115,10 +118,10 @@ class DockerController extends EventEmitter {
           '25565/tcp': [
             {
               HostIp: '0.0.0.0',
-              HostPort: port
-            }
-          ]
-        }
+              HostPort: port,
+            },
+          ],
+        },
       },
       // Volumes: {
       //   '/data': { }
@@ -128,12 +131,14 @@ class DockerController extends EventEmitter {
         'PAPER_DOWNLOAD_URL=https://heroslender.com/assets/PaperSpigot-1.8.8.jar',
         'TYPE=PAPER',
         'VERSION=1.8.8',
-        'ENABLE_RCON=false'
-      ]
+        'ENABLE_RCON=false',
+      ],
     };
 
     const container = await client.createContainer(options);
     const c = new Container(container);
+
+    //TODO: Add metric counter (incremental operation)
     return c;
   }
 
@@ -143,7 +148,7 @@ class DockerController extends EventEmitter {
    * @param {Docker.ContainerInfo} containerInfo
    * @returns {boolean}
    */
-  isZentryServer (containerInfo) {
+  isZentryServer(containerInfo) {
     for (const name of containerInfo.Names) {
       if (name.startsWith('/zentry-server-')) {
         return true;
@@ -152,6 +157,6 @@ class DockerController extends EventEmitter {
 
     return false;
   }
-};
+}
 
 module.exports = new DockerController();
