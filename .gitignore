@@ -83,3 +83,4 @@ typings/
 package-lock.json
 
 src/config.json
+daemon/src/config\.json

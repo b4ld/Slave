@@ -1,9 +1,7 @@
-'use strict'
-
-const EventEmitter = require('events')
-const logger = require('../config/logger')
-const ContainerStatus = require('./containerStatus')
-const EventType = require('./eventType')
+const EventEmitter = require('events');
+const logger = require('../helpers/logger');
+const ServerStatus = require('../server/enums/server-status.enum');
+const DockerEventEnum = require('./docker-event.enum');
 
 /** @typedef {import('dockerode').Container} DockerContainer */
 
@@ -11,7 +9,6 @@ const EventType = require('./eventType')
  * @property {DockerContainer} container
  * @property {string} name - Server name
  * @property {string} containerName - Container name
- * @property {string} status - Container current status
  * @property {import('winston').Logger} logger - Container logger
  */
 module.exports = class Container extends EventEmitter {
@@ -19,100 +16,81 @@ module.exports = class Container extends EventEmitter {
    * @param {DockerContainer} container 
    */
   constructor (container) {
-    super()
+    super();
 
-    this.logger = logger()
-    // Temporary values
-    this.name = container.id
-    this.containerName = container.id
+    this.container = container;
 
-    this.container = container
-    this.status = ContainerStatus.OFFLINE
-    this.regex = {
-      start: /^(.*?)\[[\d:]{8} INFO]: Done \((.*?)s\)! For help, type "help"/,
-      stop: /^(.*?)\[[\d:]{8} INFO]: Stopping server/
-    }
-
-    this.init()
-      .then(() => this.logger.info('Container "%s" loaded! Current status: %s', this.containerName, this.status))
-      .catch(err => this.logger.error('Failed to start the container!', { stack: err.stack }))
+    this.logger = logger();
+    this.id = container.id;
+    this.name = container.id;
   }
 
   /**
-   * Initialize the container.
-   * Gets the container's name and state and
-   * start it if not running already.
+   * Get the information about the container
+   * 
+   * @returns {Promise<InspectInfo>}
    */
-  async init () {
-    const info = await this.container.inspect()
+  async inspect () {
+    const info = await this.container.inspect();
+    this.name = info.Name.substr(1);
+    this.logger = logger(this.name);
 
-    this.name = info.Name.substr(15)
-    this.containerName = info.Name.substr(1)
-    this.logger = logger(this.name)
+    const ports = info.NetworkSettings.Ports['25565/tcp'] || [{ HostPort: '-1' }];
 
-    if (info.State.Running === true) {
-      this.status = ContainerStatus.ONLINE
-    } else {
-      this.start()
-    }
+    return {
+      name: info.Name.replace('/' + 'zentry-server-', ''),
+      status: info.State.Running ? ServerStatus.ONLINE : ServerStatus.OFFLINE,
+      port: ports[0].HostPort
+    };
   }
 
   /**
-   * Start the container
+   * Start the container if not running
    */
   async start () {
-    if (this.status === ContainerStatus.OFFLINE) {
-      await this.container.start()
-
-      this.logger.info('Container is now starting...')
-      this.updateStatus(ContainerStatus.STARTING)
-
-      await this.attach()
-      this.logger.info('Attached to the container, waiting for it to fully start.')
-    } else {
-      this.logger.warning('Received command to start the container but it is already running!')
-    }
+    await this.container.start();
   }
 
   /**
-   * Attach to the container 
+   * Attach to the container if running
    */
   async attach () {
-    const stream = await this.container.attach({ stream: true, stdout: true, stderr: true })
-
+    const stream = await this.container.attach({ stream: true, stdout: true, stderr: true });
+    stream.setEncoding('utf8');
     // Listen for console output
     stream.on('data', (data) => {
       data.toString().split('\n').forEach((line) => {
         if (line) {
-          this.onConsoleOutput(line.trim())
+          this.emit(DockerEventEnum.CONSOLE_OUTPUT, line.trim());
         }
-      })
-    })
+      });
+    }).on('end', () => {
+      this.logger.warn('Attach stream closed!');
+    }).on('error', err => {
+      this.logger.error('Attach stream error!', { err });
+    });
   }
 
   /**
-   * Method called when there is new console output
-   * @param {string} msg - Message received
+   * Stop the container if running
    */
-  async onConsoleOutput (msg) {
-    let match = msg.match(this.regex.start)
-    if (match) {
-      this.updateStatus(ContainerStatus.ONLINE)
-    }
-
-    match = msg.match(this.regex.stop)
-    if (match) {
-      this.updateStatus(ContainerStatus.STOPPING)
-    }
+  async stop () {
+    await this.container.stop();
   }
 
   /**
-   * 
-   * @param {string} status 
+   * Remove the container
+   * This is a permanent action
    */
-  updateStatus (status) {
-    this.status = status
-    this.emit(EventType.STATUS_UPDATE, status)
-    this.logger.info('Status updated: %s', this.status)
+  async remove () {
+    await this.container.remove();
   }
-}
+};
+
+/**
+ * @typedef InspectInfo
+ * @type {object}
+ * @property {string} name - The container name
+ * @property {string} status - The container current status(online or offline)
+ * @property {string} port - The port exposed
+ */

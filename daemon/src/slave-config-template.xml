@@ -1,0 +1,28 @@
+<Configuration>
+    <Daemon>
+        <MountDir>/home/zentry/servers/<!-- containerName/ --></MountDir>
+        <PortRange>
+            <Start>25000</Start>
+            <End>26000</End>
+        </PortRange>
+    </Daemon>
+    <Servers>
+        <Server>
+            <Name>hub</Name>
+            <Image>
+                <Name>itzg/minecraft-server</Name>
+            </Image>
+            <Properties>
+                <Property name="autoRestart" type="true" />
+                <Property name="volume" type="/home/mc/hub/plugins:/data/plugins" />
+                <Property name="volume" type="/home/mc/hub/world:/data/world" />
+            </Properties>
+        </Server>
+        <Server>
+            <Name>bedwars</Name>
+            <Image>
+                <Name>itzg/minecraft-server</Name>
+            </Image>
+        </Server>
+    </Servers>
+</Configuration>

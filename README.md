@@ -2,7 +2,11 @@
 
 # Zentry Slave
 
+> Slave is a daemon that allows you to control automatically your docker containers by a RESTful API
+
+
 <!-- PROJECT SHIELDS -->
+
 ![GitHub contributors][contributors-shield]
 ![Stars][stars-shield]
 [![MIT License][license-shield]][license-url]
@@ -12,8 +16,9 @@
 > Slave is a daemon that allows you to control automatically your docker containers by a RESTful API
 
 This project contains 2 seperated modules:
- * **daemon** - Contains all daemon business logic code
- * **daemon-rest** - Contains all code to expose the daemon funcionality through a restful api
+
+- **daemon** - Contains all daemon business logic code
+- **daemon-rest** - Contains all code to expose the daemon funcionality through a restful api
 
 ## Questions?
 
