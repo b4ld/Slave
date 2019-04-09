@@ -25,6 +25,11 @@ module.exports = class Container extends EventEmitter {
     this.name = container.id;
   }
 
+  /**
+   * Get the information about the container
+   * 
+   * @returns {Promise<InspectInfo>}
+   */
   async inspect () {
     const info = await this.container.inspect();
     this.name = info.Name.substr(1);
@@ -81,3 +86,11 @@ module.exports = class Container extends EventEmitter {
     await this.container.remove();
   }
 };
+
+/**
+ * @typedef InspectInfo
+ * @type {object}
+ * @property {string} name - The container name
+ * @property {string} status - The container current status(online or offline)
+ * @property {string} port - The port exposed
+ */

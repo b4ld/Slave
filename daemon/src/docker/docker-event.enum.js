@@ -1,5 +1,6 @@
 /**
  * Event types for the docker controller.
+ * 
  * @readonly
  * @enum {string}
  */

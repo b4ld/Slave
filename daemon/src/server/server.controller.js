@@ -23,7 +23,16 @@ class ServerController {
     this.servers = {};
   }
 
+<<<<<<< HEAD
   async init() {
+=======
+  /**
+   * Server controller initialization.
+   * Initialize containers already running and
+   * register listeners on the docker controller
+   */
+  async init () {
+>>>>>>> 21f844f17f499fa95303b2d1d125c25076c9d1a0
     logger.info('Checking for existing servers...');
     const containers = await dockerController.getContainers();
     for (const container of containers) {
@@ -64,7 +73,7 @@ class ServerController {
    * Create a new server with the given configuration.
    *
    * @param {ServerModel|string} serverModel The ServerModel or a valid server name
-   * @returns {Server} The server created
+   * @returns {Promise<Server>} The server created
    */
   async createServer(serverModel) {
     if (typeof serverModel === 'string') {
@@ -103,8 +112,15 @@ class ServerController {
   }
 
   /**
+<<<<<<< HEAD
    *
    * @param {import('../docker/container')} container
+=======
+   * Initialize a new server with the given container
+   * 
+   * @param {import('../docker/container')} container The container the server is based on
+   * @returns {Promise<Server>} The server initialized
+>>>>>>> 21f844f17f499fa95303b2d1d125c25076c9d1a0
    */
   async initServer(container) {
     const server = new Server(container);
@@ -146,7 +162,18 @@ class ServerController {
     this.servers[server.container.id] = server;
   }
 
+<<<<<<< HEAD
   getNextId(serverModel) {
+=======
+  /**
+   * Get the next avaliable id for the container 
+   * of the specified server model.
+   * 
+   * @param {ServerModel} serverModel
+   * @returns {string} The next avaliable ID
+   */
+  getNextId (serverModel) {
+>>>>>>> 21f844f17f499fa95303b2d1d125c25076c9d1a0
     const usedIds = Object.values(this.servers)
       .filter(s => s.config.name === serverModel.name)
       .map(s => s.name.split('-')[1])
@@ -160,7 +187,16 @@ class ServerController {
     return newestId + 1;
   }
 
+<<<<<<< HEAD
   getAvaliablePort() {
+=======
+  /**
+   * Get the first avaliable port for the servers
+   * 
+   * @returns {string} An unused port
+   */
+  getAvaliablePort () {
+>>>>>>> 21f844f17f499fa95303b2d1d125c25076c9d1a0
     const portsInUSe = Object.values(this.servers).map(s => s.port);
     const portRange = config.portRange;
     let firstAvaliable = -1;

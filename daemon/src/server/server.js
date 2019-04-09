@@ -22,6 +22,12 @@ module.exports = class Server extends EventEmitter {
     };
   }
 
+  /**
+   * Server initialization.
+   * Get the server data(name, port, config),
+   * start the server if it's stopped and
+   * listen for the console.
+   */
   async init () {
     const inspect = await this.container.inspect();
     this.name = inspect.name;
@@ -94,6 +100,10 @@ module.exports = class Server extends EventEmitter {
     this.emit(DockerEventEnum.STATUS_UPDATE, status);
   }
 
+  /**
+   * Register listeners for the container
+   * and configuration.
+   */
   async registerListeners () {
     this.container.on(DockerEventEnum.STATUS_UPDATE, newStatus => this.updateStatus(newStatus));
     this.container.on(DockerEventEnum.CONSOLE_OUTPUT, data => this.onConsoleOutput(data));
