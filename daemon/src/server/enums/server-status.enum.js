@@ -1,5 +1,6 @@
 /**
  * The status of a server.
+ * 
  * @readonly
  * @enum {string}
  */

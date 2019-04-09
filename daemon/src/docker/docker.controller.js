@@ -20,7 +20,7 @@ class DockerController extends EventEmitter {
     await client.listContainers();
 
     logger.info('Updating images...');
-    // await this.ensureImagesLoaded();
+    await this.ensureImagesLoaded();
     logger.info('All images are updated!');
 
     this.registerListener().catch(err =>
@@ -33,7 +33,7 @@ class DockerController extends EventEmitter {
   /**
    * Get all zentry containers currently running
    * 
-   * @returns {Container[]}
+   * @returns {Promise<Container[]>}
    */
   async getContainers () {
     const containers = [];
@@ -78,6 +78,7 @@ class DockerController extends EventEmitter {
   /**
    * Ensure that all the images required for the
    * containers are present localy.
+   * 
    * @private
    */
   async ensureImagesLoaded () {
@@ -96,6 +97,7 @@ class DockerController extends EventEmitter {
    * @param {import('../server/server.model')} serverModel - The server model to create the container from
    * @param {string} port - Container port to expose
    * @param {string} identifier - Unique identifier to the server, ex and auto-increment number
+   * @returns {Promise<Container>} The created container
    */
   async createContainer (serverModel, port, identifier) {
     const options = {

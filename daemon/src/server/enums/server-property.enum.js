@@ -1,3 +1,10 @@
+/**
+ * The avaliable server properties with
+ * its default value.
+ * 
+ * @readonly
+ * @enum {string}
+ */
 module.exports = Object.freeze({
   MOUNT: {
     name: 'mount',

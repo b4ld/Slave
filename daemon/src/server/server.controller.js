@@ -20,6 +20,11 @@ class ServerController {
     this.servers = {};
   }
 
+  /**
+   * Server controller initialization.
+   * Initialize containers already running and
+   * register listeners on the docker controller
+   */
   async init () {
     logger.info('Checking for existing servers...');
     const containers = await dockerController.getContainers();
@@ -50,7 +55,7 @@ class ServerController {
    * Create a new server with the given configuration.
    * 
    * @param {ServerModel|string} serverModel The ServerModel or a valid server name
-   * @returns {Server} The server created
+   * @returns {Promise<Server>} The server created
    */
   async createServer (serverModel) {
     if (typeof serverModel === 'string') {
@@ -77,8 +82,10 @@ class ServerController {
   }
 
   /**
+   * Initialize a new server with the given container
    * 
-   * @param {import('../docker/container')} container 
+   * @param {import('../docker/container')} container The container the server is based on
+   * @returns {Promise<Server>} The server initialized
    */
   async initServer (container) {
     const server = new Server(container);
@@ -114,6 +121,13 @@ class ServerController {
     this.servers[server.container.id] = server;
   }
 
+  /**
+   * Get the next avaliable id for the container 
+   * of the specified server model.
+   * 
+   * @param {ServerModel} serverModel
+   * @returns {string} The next avaliable ID
+   */
   getNextId (serverModel) {
     const usedIds = Object.values(this.servers)
       .filter(s => s.config.name === serverModel.name)
@@ -128,6 +142,11 @@ class ServerController {
     return newestId + 1;
   }
 
+  /**
+   * Get the first avaliable port for the servers
+   * 
+   * @returns {string} An unused port
+   */
   getAvaliablePort () {
     const portsInUSe = Object.values(this.servers).map(s => s.port);
     const portRange = config.portRange;

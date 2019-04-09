@@ -1,4 +1,4 @@
-const ServerModel = require('../server/server.model');
+/** @typedef {import('../server/server.model')} ServerModel */
 
 module.exports = class ConfigurationModel {
   /**
