@@ -7,7 +7,7 @@ let configuration = ConfigParser.loadAndParse();
  * 
  * @returns {import('../configuration/configuration.model').ContainerImage[]}
  */
-function getImages () {
+function getImages() {
   return Object.values(configuration.servers)
     .map(server => server.image)
     // Filter duplicated values
@@ -23,12 +23,12 @@ function getImages () {
 /**
  * Reload the configuration
  */
-function reload () {
+function reload() {
   configuration = ConfigParser.loadAndParse();
 }
 
 module.exports = {
   ...configuration,
   getImages,
-  reload
+  reload,
 };

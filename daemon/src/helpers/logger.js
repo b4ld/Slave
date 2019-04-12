@@ -22,9 +22,9 @@ const logger = winston.createLogger({
       dirname: './logs',
       datePattern: 'YYYY-MM-DD',
       zippedArchive: true,
-      maxFiles: '14d'
-    })
-  ]
+      maxFiles: '14d',
+    }),
+  ],
 });
 
 if (process.env.NODE_ENV !== 'production') {
@@ -56,7 +56,7 @@ if (process.env.NODE_ENV !== 'production') {
             return `${info.timestamp} ${info.level} ${label}${info.message}${stack}`;
           }
         )
-      )
+      ),
     })
   );
 }

@@ -10,7 +10,7 @@ module.exports = class Server extends EventEmitter {
   /**
    * @param {import('../docker/container')} container The docker container
    */
-  constructor (container) {
+  constructor(container) {
     super();
     this.container = container;
     this.logger = Logger();
@@ -18,7 +18,7 @@ module.exports = class Server extends EventEmitter {
     this.status = ServerStatus.OFFLINE;
     this.regex = {
       start: /^(.*?)\[[\d:]{8} INFO]: Done \((.*?)s\)! For help, type "help"/,
-      stop: /^(.*?)\[[\d:]{8} INFO]: Stopping server/
+      stop: /^(.*?)\[[\d:]{8} INFO]: Stopping server/,
     };
   }
 
@@ -28,7 +28,7 @@ module.exports = class Server extends EventEmitter {
    * start the server if it's stopped and
    * listen for the console.
    */
-  async init () {
+  async init() {
     const inspect = await this.container.inspect();
     this.name = inspect.name;
     this.port = inspect.port;
@@ -51,7 +51,7 @@ module.exports = class Server extends EventEmitter {
   /**
    * Start the container if not running
    */
-  async start () {
+  async start() {
     if (this.status !== ServerStatus.OFFLINE) {
       throw new ServerException('The server is already running!');
     }
@@ -70,7 +70,7 @@ module.exports = class Server extends EventEmitter {
   /**
    * Stop the container if running
    */
-  async stop () {
+  async stop() {
     if (this.status !== ServerStatus.OFFLINE &&
       this.status !== ServerStatus.STOPPING) {
       await this.container.stop();
@@ -81,7 +81,7 @@ module.exports = class Server extends EventEmitter {
    * Remove the container
    * This is a permanent action
    */
-  async remove () {
+  async remove() {
     if (this.status !== ServerStatus.OFFLINE) {
       await this.container.stop();
     } else {
@@ -94,7 +94,7 @@ module.exports = class Server extends EventEmitter {
    * 
    * @param {string} status New status
    */
-  updateStatus (status) {
+  updateStatus(status) {
     this.status = status;
     this.logger.child({ label: `${this.name} status` }).debug(this.status);
     this.emit(DockerEventEnum.STATUS_UPDATE, status);
@@ -104,7 +104,7 @@ module.exports = class Server extends EventEmitter {
    * Register listeners for the container
    * and configuration.
    */
-  async registerListeners () {
+  async registerListeners() {
     this.container.on(DockerEventEnum.STATUS_UPDATE, newStatus => this.updateStatus(newStatus));
     this.container.on(DockerEventEnum.CONSOLE_OUTPUT, data => this.onConsoleOutput(data));
 
@@ -127,7 +127,7 @@ module.exports = class Server extends EventEmitter {
    * 
    * @param {string} msg - Message received
    */
-  async onConsoleOutput (msg) {
+  async onConsoleOutput(msg) {
     let match = msg.match(this.regex.start);
     if (match) {
       this.updateStatus(ServerStatus.ONLINE);

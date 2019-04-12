@@ -28,7 +28,7 @@ class ServerController {
    * Initialize containers already running and
    * register listeners on the docker controller
    */
-  async init () {
+  async init() {
     logger.info('Checking for existing servers...');
     const containers = await dockerController.getContainers();
     for (const container of containers) {
@@ -160,7 +160,7 @@ class ServerController {
    * @param {ServerModel} serverModel
    * @returns {string} The next avaliable ID
    */
-  getNextId (serverModel) {
+  getNextId(serverModel) {
     const usedIds = Object.values(this.servers)
       .filter(s => s.config.name === serverModel.name)
       .map(s => s.name.split('-')[1])
@@ -179,7 +179,7 @@ class ServerController {
    * 
    * @returns {string} An unused port
    */
-  getAvaliablePort () {
+  getAvaliablePort() {
     const portsInUSe = Object.values(this.servers).map(s => s.port);
     const portRange = config.portRange;
     let firstAvaliable = -1;

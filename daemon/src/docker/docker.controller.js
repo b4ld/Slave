@@ -140,7 +140,7 @@ class DockerController extends EventEmitter {
     const container = await client.createContainer(options);
     const c = new Container(container);
 
-    //TODO: Add metric counter (incremental operation)
+    // TODO: Add metric counter (incremental operation)
     return c;
   }
 

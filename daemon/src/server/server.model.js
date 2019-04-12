@@ -5,7 +5,7 @@ module.exports = class ServerModel {
    * @param {ContainerImage} image - The container image
    * @param {ServerProperties} serverProperties - The server properties 
    */
-  constructor (name, image, serverProperties) {
+  constructor(name, image, serverProperties) {
     /** 
      * Server type name
      * 

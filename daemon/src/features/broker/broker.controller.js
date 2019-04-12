@@ -8,31 +8,31 @@ class BrokerController {
 
     logger.info('Starting message broker...');
 
-    //Make a rabbitmq connection
+    // Make a rabbitmq connection
     await amqp.connect(`amqp://${options.hostname}`, function(err, conn) {
       conn.createChannel(function(err, ch) {
         const queue = options.queue;
 
-        //Make sure that our queue stays intact even if the rabbitmq crashes or stops
+        // Make sure that our queue stays intact even if the rabbitmq crashes or stops
         ch.assertQueue(queue, { durable: true });
         logger.info('Waiting for messages in #%s.', queue);
 
-        //If theres more than one worker, it waits for the other one
+        // If theres more than one worker, it waits for the other one
         ch.prefetch(1);
 
-        //Listen for messages
+        // Listen for messages
         ch.consume(
           queue,
           function(payload) {
             if (payload != null) {
-              //TODO: decode payload and create container
+              // TODO: decode payload and create container
 
               logger.info(
                 'Requesting container with: %s',
                 payload.content.toString()
               );
 
-              //Send acknowledgment to the publisher
+              // Send acknowledgment to the publisher
               ch.ack(payload);
             }
           },
