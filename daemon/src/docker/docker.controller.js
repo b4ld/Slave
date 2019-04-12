@@ -32,13 +32,8 @@ class DockerController extends EventEmitter {
 
   /**
    * Get all zentry containers currently running
-<<<<<<< HEAD
-   *
-   * @returns {Container[]}
-=======
    * 
    * @returns {Promise<Container[]>}
->>>>>>> 21f844f17f499fa95303b2d1d125c25076c9d1a0
    */
   async getContainers() {
     const containers = [];
