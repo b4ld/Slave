@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"eslint.autoFixOnSave": true,
+		"eslint.validate": [
+			{
+				"language": "typescript",
+				"autoFix": true
+			}
+		],
+		"typescript.preferences.importModuleSpecifier": "relative",
+		"typescript.preferences.quoteStyle": "single",
+		"typescript.suggest.completeFunctionCalls": true,
+	}
+}
