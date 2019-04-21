@@ -1,5 +1,4 @@
 import Joi from 'joi';
-import ServerPropertyType from '../server/enums/server-property.enum';
 
 const portRangeSchema = Joi.object()
     .keys({
@@ -15,7 +14,7 @@ const portRangeSchema = Joi.object()
 const serverPropertySchema = Joi.object().keys({
     $: Joi.object().keys({
         name: Joi.string()
-            .valid(...ServerPropertyType.values().map(v => v.name))
+            .valid('autoRestart', 'singleInstance', 'deleteOnStop', 'volume')
             .required(),
         type: Joi.any().required(),
     }),

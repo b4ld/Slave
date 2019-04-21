@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import ServerPropertyType, {
-    ServerProperty,
-} from '../../server/enums/server-property.enum';
+import ServerPropertyType from '../../server/enums/server-property.enum';
 import { logger } from '../configuration.controller';
 
 class ServerPropertyParser {
@@ -13,22 +11,29 @@ class ServerPropertyParser {
         if (props) {
             if (Array.isArray(props)) {
                 for (const prop of props) {
-                    this.parseProperty(prop);
+                    this.mapProperty(prop);
                 }
             } else {
-                this.parseProperty(props);
+                this.mapProperty(props);
             }
         }
 
-        if (this.properties[ServerPropertyType.AUTO_RESTART.name]) {
-            this.properties[ServerPropertyType.DELETE_ON_STOP.name] = false;
+        if (this.properties[ServerPropertyType.AUTO_RESTART]) {
+            this.properties[ServerPropertyType.DELETE_ON_STOP] = false;
         }
 
         // Fill undefined properties
-        for (const p of ServerPropertyType.values()) {
-            if (this.properties[p.name] === undefined) {
-                this.properties[p.name] = p.default;
-            }
+        this.setIfUndefined(ServerPropertyType.AUTO_RESTART, false);
+        this.setIfUndefined(ServerPropertyType.SINGLE_INSTANCE, false);
+        this.setIfUndefined(ServerPropertyType.DELETE_ON_STOP, true);
+        this.setIfUndefined(ServerPropertyType.VOLUME, []);
+    }
+
+    setIfUndefined(prop: ServerPropertyType, value: any): void {
+        const currentValue = this.properties[prop];
+
+        if (currentValue === undefined) {
+            this.properties[prop] = value;
         }
     }
 
@@ -37,46 +42,38 @@ class ServerPropertyParser {
      *
      * @param {object} propertyXml
      */
-    parseProperty(propertyXml: any): void {
+    mapProperty(propertyXml: any) {
         if (!propertyXml.$ || !propertyXml.$.name) {
             return;
         }
 
-        const property = this.isValidServerProperty(propertyXml.$.name);
-        if (!property) {
-            logger.warn(
-                `${this.server} - The property ${
-                    propertyXml.$.name
-                } does not exist!`
-            );
-            return;
-        }
+        const property = propertyXml.$.name;
+        const value = propertyXml.$.type;
 
-        if (property === ServerPropertyType.VOLUME) {
-            /** @type {string[]} */
-            const volumes =
-                this.properties[ServerPropertyType.VOLUME.name] || [];
-            volumes.push(propertyXml.$.type);
-            this.properties[ServerPropertyType.VOLUME.name] = volumes;
-        } else {
-            this.properties[property.name] =
-                propertyXml.$.type === undefined
-                    ? property.default
-                    : propertyXml.$.type;
-        }
-    }
-
-    /**
-     * Check if the property exists
-     *
-     * @param {string} property property to check
-     * @returns {ServerProperty} ServerProperty if property exists, undefined otherwise
-     */
-    isValidServerProperty(property: string): ServerProperty {
-        for (const p of Object.values(ServerPropertyType)) {
-            if (p.name.toLowerCase() === property.toLowerCase()) {
-                return p;
-            }
+        switch (property) {
+            case 'autoRestart':
+                this.properties[ServerPropertyType.AUTO_RESTART] =
+                    value || false;
+                break;
+            case 'singleInstance':
+                this.properties[ServerPropertyType.SINGLE_INSTANCE] =
+                    value || false;
+                break;
+            case 'deleteOnStop':
+                this.properties[ServerPropertyType.DELETE_ON_STOP] =
+                    value || true;
+                break;
+            case 'volume':
+                const volumes =
+                    this.properties[ServerPropertyType.VOLUME] || [];
+                volumes.push(value);
+                this.properties[ServerPropertyType.VOLUME] = volumes;
+                break;
+            default:
+                logger.warn(
+                    `${this.server} - The property ${property} does not exist!`
+                );
+                break;
         }
     }
 }

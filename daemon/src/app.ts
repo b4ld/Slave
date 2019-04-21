@@ -1,5 +1,6 @@
 import { parseConfig } from './configuration/configuration.controller';
 import { newLogger } from './logger/Logger';
+import util from 'util';
 
 const logger = newLogger();
 
@@ -9,7 +10,10 @@ logger.info('Starting the zentry daemon.');
 
 logger.info('Loading the configuration...');
 const config = parseConfig();
-console.log('Configuration loaded!', config);
+console.log(
+    'Configuration loaded!',
+    util.inspect(config, false, null, true /* enable colors */)
+);
 
 logger.info(
     'Daemon initialized! (%dms)',
