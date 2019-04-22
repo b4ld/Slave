@@ -1,8 +1,7 @@
-import User from '../../model/user';
 import ServerResolver from './resolver';
 import CrudController from '../../common/crud-controller';
 
-export default class UserController extends CrudController<User> {
+export default class ServerController extends CrudController<Number> {
   constructor() {
     super(new ServerResolver());
   }
