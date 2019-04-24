@@ -4,7 +4,10 @@ import { logger } from '../configuration.controller';
 
 class ServerPropertyParser {
     server: string;
-    properties: { [key: string]: any } = {};
+    properties: Map<ServerPropertyType, any> = new Map<
+        ServerPropertyType,
+        any
+    >();
 
     constructor(serverName: string, props: any) {
         this.server = serverName;
@@ -18,8 +21,8 @@ class ServerPropertyParser {
             }
         }
 
-        if (this.properties[ServerPropertyType.AUTO_RESTART]) {
-            this.properties[ServerPropertyType.DELETE_ON_STOP] = false;
+        if (this.properties.has(ServerPropertyType.AUTO_RESTART)) {
+            this.properties.set(ServerPropertyType.DELETE_ON_STOP, false);
         }
 
         // Fill undefined properties
@@ -30,10 +33,8 @@ class ServerPropertyParser {
     }
 
     setIfUndefined(prop: ServerPropertyType, value: any): void {
-        const currentValue = this.properties[prop];
-
-        if (currentValue === undefined) {
-            this.properties[prop] = value;
+        if (!this.properties.has(prop)) {
+            this.properties.set(prop, value);
         }
     }
 
@@ -52,22 +53,28 @@ class ServerPropertyParser {
 
         switch (property) {
             case 'autoRestart':
-                this.properties[ServerPropertyType.AUTO_RESTART] =
-                    value || false;
+                this.properties.set(
+                    ServerPropertyType.AUTO_RESTART,
+                    value || false
+                );
                 break;
             case 'singleInstance':
-                this.properties[ServerPropertyType.SINGLE_INSTANCE] =
-                    value || false;
+                this.properties.set(
+                    ServerPropertyType.SINGLE_INSTANCE,
+                    value || false
+                );
                 break;
             case 'deleteOnStop':
-                this.properties[ServerPropertyType.DELETE_ON_STOP] =
-                    value || true;
+                this.properties.set(
+                    ServerPropertyType.DELETE_ON_STOP,
+                    value || true
+                );
                 break;
             case 'volume':
                 const volumes =
-                    this.properties[ServerPropertyType.VOLUME] || [];
+                    this.properties.get(ServerPropertyType.VOLUME) || [];
                 volumes.push(value);
-                this.properties[ServerPropertyType.VOLUME] = volumes;
+                this.properties.set(ServerPropertyType.VOLUME, volumes);
                 break;
             default:
                 logger.warn(
@@ -78,7 +85,10 @@ class ServerPropertyParser {
     }
 }
 
-export default (serverName: string, props: any): { [key: string]: any } => {
+export default (
+    serverName: string,
+    props: any
+): Map<ServerPropertyType, any> => {
     const parser = new ServerPropertyParser(serverName, props);
 
     return parser.properties;

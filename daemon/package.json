@@ -8,7 +8,7 @@
     "dev": "nodemon",
     "build": "npm run build-ts && npm run eslint",
     "serve": "node dist/app.ts",
-    "test": "jest --forceExit --coverage --verbose",
+    "test": "jest",
     "watch-test": "npm run test -- --watchAll",
     "build-ts": "tsc",
     "eslint": "eslint --ext .ts -c ./.eslintrc.js ./src"

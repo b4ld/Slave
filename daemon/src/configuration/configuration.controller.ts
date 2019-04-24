@@ -15,13 +15,16 @@ const parser = new xmlToJs.Parser({
 
 export { logger };
 
-export function readConfig(): object {
-    const configFile = fs.readFileSync(Constants.CONFIGURATION_FILE);
-
+export function readConfigFile(
+    file: string = Constants.CONFIGURATION_FILE
+): string {
+    return fs.readFileSync(file).toString();
+}
+export function readConfig(configContents: string = readConfigFile()): object {
     let err;
     let xml;
     parser.parseString(
-        configFile,
+        configContents,
         (e: Error, r: object): void => {
             err = e;
             xml = r;

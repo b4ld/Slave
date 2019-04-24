@@ -9,7 +9,7 @@ export default interface ConfigurationModel {
     /**
      * All avaliable server types
      */
-    servers: ServerModel[];
+    servers: Map<string, ServerModel>;
 }
 
 /**

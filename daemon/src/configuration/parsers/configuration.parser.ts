@@ -22,17 +22,17 @@ export default (xml: any): ConfigurationModel => {
         start: config.Daemon.PortRange.Start,
         end: config.Daemon.PortRange.End,
     };
-    const servers: ServerModel[] = [];
+    const servers: Map<string, ServerModel> = new Map<string, ServerModel>();
 
     if (config.Servers) {
         if (Array.isArray(config.Servers.Server)) {
             for (const server of config.Servers.Server) {
                 const s = parseServer(server);
-                servers[s.name] = s;
+                servers.set(s.name, s);
             }
         } else {
             const s = parseServer(config.Servers.Server);
-            servers[s.name] = s;
+            servers.set(s.name, s);
         }
     }
 

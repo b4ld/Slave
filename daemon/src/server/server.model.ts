@@ -1,26 +1,26 @@
+import ServerPropertyType from './enums/server-property.enum';
+
 export default class ServerModel {
     /**
      * Server type name
-     *
-     * @type {string}
      */
     name: string;
 
     /**
      * Server container image
-     *
-     * @type {ContainerImage}
      */
     image: object;
 
     /**
      * Server properties
-     *
-     * @type {ServerProperties}
      */
-    properties: object;
+    properties: Map<ServerPropertyType, any>;
 
-    constructor(name: string, image: object, serverProperties: object) {
+    constructor(
+        name: string,
+        image: object,
+        serverProperties: Map<ServerPropertyType, any>
+    ) {
         this.name = name;
         this.image = image;
         this.properties = serverProperties;
