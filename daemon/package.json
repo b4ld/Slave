@@ -46,7 +46,7 @@
     "@types/eslint-plugin-prettier": "^2.2.0",
     "@types/jest": "^24.0.11",
     "@types/joi": "^14.3.3",
-    "@types/node": "^11.13.6",
+    "@types/node": "^11.13.7",
     "@types/prettier": "^1.16.3",
     "@types/typescript": "^2.0.0",
     "@types/xml2js": "^0.4.4",
@@ -67,6 +67,6 @@
     "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.1.0",
-    "typescript": "^3.4.4"
+    "typescript": "^3.4.5"
   }
 }

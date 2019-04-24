@@ -8,5 +8,5 @@ export default interface Logger {
 }
 
 export const newLogger = (properties: object = {}) => {
-    return new LoggerImpl(properties)
+    return new LoggerImpl(properties);
 };
