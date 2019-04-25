@@ -13,8 +13,6 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a91d4eef2f264084aeaad67780373337)](https://app.codacy.com/app/TommyAlmeida/Slave?utm_source=github.com&utm_medium=referral&utm_content=ZentryOrg/Slave&utm_campaign=Badge_Grade_Dashboard)
 [![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
-> Slave is a daemon that allows you to control automatically your docker containers by a RESTful API
-
 This project contains 2 seperated modules:
 
 - **daemon** - Contains all daemon business logic code
