@@ -1,21 +1,18 @@
-import { parseConfig } from './configuration/configuration.controller';
+import { init as initializeEnvironment } from './environment/environment-manager';
 import { newLogger } from './logger/Logger';
-import util from 'util';
-
-const logger = newLogger();
 
 const start = new Date();
+const logger = newLogger();
 
-logger.info('Starting the zentry daemon.');
+logger.info('Starting the zentry daemon...');
 
-logger.info('Loading the configuration...');
-const config = parseConfig();
-console.log(
-    'Configuration loaded!',
-    util.inspect(config, false, null, true /* enable colors */)
-);
+async function initialize() {
+    await initializeEnvironment();
+}
 
-logger.info(
-    'Daemon initialized! (%dms)',
-    new Date().getTime() - start.getTime()
-);
+initialize().then(() => {
+    logger.info(
+        'Daemon initialized! (%dms)',
+        new Date().getTime() - start.getTime()
+    );
+});

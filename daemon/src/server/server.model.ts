@@ -9,7 +9,7 @@ export default class ServerModel {
     /**
      * Server container image
      */
-    image: object;
+    image: string;
 
     /**
      * Server properties
@@ -18,7 +18,7 @@ export default class ServerModel {
 
     constructor(
         name: string,
-        image: object,
+        image: string,
         serverProperties: Map<ServerPropertyType, any>
     ) {
         this.name = name;
